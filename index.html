@@ -1,0 +1,1755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bha Khan — Game Merchants</title>
+<meta name="description" content="Bha Khan is an independent game merchant stocking curated collections of PC, PlayStation, Xbox and Nintendo Switch titles — hand-reviewed, fairly priced, shipped worldwide." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   BHA KHAN — GAME MERCHANTS
+   Single-file storefront + admin panel.
+   Stack: HTML5 + CSS3 + vanilla JavaScript (ES2020).
+   Storage: localStorage (products, reviews, orders, cart).
+   Deploy: push this file to a GitHub repo as index.html,
+           copy the /images folder alongside it, enable Pages.
+   ============================================================ */
+
+:root{
+  --void:#060608; --ink:#0b0b10; --panel:#101017; --edge:#1d1d27;
+  --bone:#f4f1ea; --mist:#a3a3b2; --gold:#d9b26a; --gold-soft:#f0d9a8;
+  --violet:#8b5cf6; --cyan:#22d3ee; --rose:#f43f5e; --green:#34d399;
+  --serif:"Instrument Serif",ui-serif,Georgia,serif;
+  --sans:"Plus Jakarta Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--void);color:var(--bone);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+::selection{background:var(--gold);color:#11110c}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#0a0a0e}
+::-webkit-scrollbar-thumb{background:#26262f;border-radius:99px;border:2px solid #0a0a0e}
+::-webkit-scrollbar-thumb:hover{background:#3a3a46}
+
+.wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;font-weight:600}
+.display{font-family:var(--serif);font-weight:400;letter-spacing:-.015em;line-height:1.05}
+.gold{background:linear-gradient(100deg,#f6e3bb,#d9b26a 42%,#a97f3c 72%,#f0d9a8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.muted{color:var(--mist)}
+.mono{font-variant-numeric:tabular-nums}
+.hide{display:none !important}
+
+/* ---------- ambient ---------- */
+.ambient{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.ambient i{position:absolute;border-radius:50%;filter:blur(150px)}
+.ambient i:nth-child(1){left:50%;top:0;width:900px;height:520px;transform:translateX(-50%);background:rgba(139,92,246,.10)}
+.ambient i:nth-child(2){right:0;bottom:0;width:520px;height:420px;background:rgba(34,211,238,.05)}
+
+/* ---------- header ---------- */
+.marquee{overflow:hidden;border-bottom:1px solid rgba(29,29,39,.7);background:var(--ink);position:relative;z-index:60}
+.marquee div{display:flex;gap:40px;width:max-content;animation:slide 38s linear infinite;padding:8px 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mist)}
+.marquee span{display:flex;align-items:center;gap:40px;white-space:nowrap}
+.marquee span::before{content:"";width:4px;height:4px;border-radius:50%;background:rgba(217,178,106,.7)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+header.top{position:sticky;top:0;z-index:70;transition:.5s;border-bottom:1px solid transparent}
+header.top.stuck{background:rgba(6,6,8,.86);backdrop-filter:blur(18px);border-color:var(--edge)}
+.bar{display:flex;align-items:center;gap:22px;height:72px}
+.burger{display:none;width:36px;height:36px;border:1px solid var(--edge);border-radius:50%;place-items:center;color:var(--mist)}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(140deg,var(--gold-soft),var(--gold),#8a6425);color:#0b0b10;font-family:var(--serif);font-size:19px;box-shadow:0 0 24px rgba(217,178,106,.28)}
+.brand b{display:block;font-family:var(--serif);font-weight:400;font-size:21px;line-height:1}
+.brand small{display:block;font-size:9px;letter-spacing:.34em;text-transform:uppercase;color:var(--mist);margin-top:3px}
+nav.main{display:flex;gap:4px;margin-left:16px}
+nav.main a{padding:8px 16px;border-radius:99px;font-size:14px;color:var(--mist);transition:.25s}
+nav.main a:hover,nav.main a.on{background:var(--panel);color:var(--bone)}
+.tools{display:flex;align-items:center;gap:8px;margin-left:auto}
+.search{display:flex;align-items:center;border:1px solid var(--edge);background:rgba(16,16,23,.6);border-radius:99px;overflow:hidden;transition:width .45s var(--ease)}
+.search svg{margin-left:12px;color:var(--mist)}
+.search input{border:0;background:0;outline:0;padding:8px 14px 8px 8px;font-size:14px;width:170px}
+.bag{display:flex;align-items:center;gap:8px;border:1px solid rgba(217,178,106,.3);background:rgba(217,178,106,.1);color:var(--gold-soft);padding:8px 16px;border-radius:99px;font-size:14px;font-weight:500;transition:.25s}
+.bag:hover{background:rgba(217,178,106,.2)}
+.bag em{min-width:20px;height:20px;display:grid;place-items:center;border-radius:99px;background:var(--gold);color:#0b0b10;font-size:11px;font-weight:800;font-style:normal;padding:0 5px}
+.mobile{max-height:0;overflow:hidden;transition:max-height .5s var(--ease);background:var(--ink);border-color:var(--edge)}
+.mobile.open{max-height:420px;border-top:1px solid var(--edge)}
+.mobile nav{display:flex;flex-direction:column;padding:12px 20px 20px}
+.mobile nav a{padding:12px 0;border-bottom:1px solid rgba(29,29,39,.6);font-family:var(--serif);font-size:21px}
+.mobile .search{margin-top:14px;width:100%}
+.mobile .search input{width:100%}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:99px;padding:14px 30px;font-size:14px;font-weight:700;transition:.3s}
+.btn-light{background:var(--bone);color:var(--void)}
+.btn-light:hover{background:var(--gold-soft)}
+.btn-gold{background:linear-gradient(90deg,var(--gold-soft),var(--gold),var(--gold-soft));background-size:200% 100%;color:#0b0b10;transition:background-position .7s}
+.btn-gold:hover{background-position:right}
+.btn-ghost{border:1px solid var(--edge);color:var(--bone)}
+.btn-ghost:hover{border-color:rgba(217,178,106,.5)}
+.btn-sm{padding:9px 18px;font-size:12px;font-weight:600}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:-1}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,6,8,.8),rgba(6,6,8,.6),var(--void)),linear-gradient(90deg,var(--void),rgba(6,6,8,.4),transparent)}
+.hero-grid{display:grid;gap:56px;padding:70px 0 80px;align-items:center}
+@media(min-width:1024px){.hero-grid{grid-template-columns:1.15fr .85fr;padding:100px 0 110px}}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(217,178,106,.3);background:rgba(217,178,106,.1);color:var(--gold-soft);padding:6px 16px;border-radius:99px;font-size:11px;letter-spacing:.22em;text-transform:uppercase}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.hero h1{font-family:var(--serif);font-size:clamp(48px,8vw,104px);line-height:.92;margin-top:26px}
+.hero p.lead{margin-top:26px;max-width:560px;color:var(--mist);font-size:17px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:560px;margin-top:46px;border-top:1px solid var(--edge);padding-top:30px}
+.stats b{display:block;font-family:var(--serif);font-weight:400;font-size:30px}
+.stats span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist)}
+.hero-card{position:relative;border:1px solid var(--edge);background:rgba(16,16,23,.6);backdrop-filter:blur(18px);border-radius:26px;padding:12px;display:block;overflow:hidden}
+.hero-card .ph{position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden}
+.hero-card .ph img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease)}
+.hero-card:hover .ph img{transform:scale(1.05)}
+.hero-card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--void),transparent 60%)}
+.hero-card .meta{position:absolute;left:20px;right:20px;bottom:20px}
+.tag-new{position:absolute;left:16px;top:16px;background:var(--bone);color:#0b0b10;font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;padding:5px 12px;border-radius:99px}
+
+/* ---------- sections ---------- */
+section.block{padding:80px 0}
+section.block.tight{padding:50px 0}
+.sec-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:34px}
+.sec-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,4vw,48px);margin-top:10px}
+.band{background:rgba(11,11,16,.6);border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+
+/* ---------- collections ---------- */
+.colls{display:grid;gap:20px}
+@media(min-width:640px){.colls{grid-template-columns:1fr 1fr}}
+@media(min-width:1024px){.colls{grid-template-columns:repeat(3,1fr)}}
+.coll{position:relative;height:290px;border-radius:18px;overflow:hidden;border:1px solid var(--edge);display:block}
+.coll img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.1s var(--ease)}
+.coll:hover img{transform:scale(1.1)}
+.coll .tint{position:absolute;inset:0;mix-blend-mode:multiply;opacity:.7;transition:opacity .5s}
+.coll:hover .tint{opacity:.5}
+.coll .shade{position:absolute;inset:0;background:linear-gradient(0deg,var(--void),rgba(6,6,8,.35),transparent)}
+.coll .txt{position:absolute;left:20px;right:20px;bottom:20px}
+.coll .txt h3{font-family:var(--serif);font-weight:400;font-size:29px;line-height:1.1}
+.coll .go{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-soft)}
+
+/* ---------- product cards ---------- */
+.grid-p{display:grid;gap:20px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:900px){.grid-p{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1200px){.grid-p{grid-template-columns:repeat(4,1fr)}}
+.card{display:flex;flex-direction:column;height:100%;border:1px solid var(--edge);background:rgba(16,16,23,.5);border-radius:18px;overflow:hidden;transition:transform .55s var(--ease),box-shadow .55s var(--ease),border-color .4s}
+.card:hover{transform:translateY(-6px);box-shadow:0 28px 60px -28px rgba(0,0,0,.95),0 0 0 1px rgba(217,178,106,.22);border-color:rgba(217,178,106,.25)}
+.card .ph{position:relative;aspect-ratio:3/4;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease)}
+.card:hover .ph img{transform:scale(1.07)}
+.card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--void),transparent 55%)}
+.card .flags{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;z-index:2}
+.flag{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.flag.n{background:var(--bone);color:#0b0b10}
+.flag.d{background:var(--rose);color:#fff}
+.flag.l{background:rgba(245,158,11,.9);color:#0b0b10}
+.card .plat{position:absolute;right:12px;top:12px;z-index:2;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(6px)}
+.card .body{display:flex;flex-direction:column;gap:8px;padding:16px;flex:1}
+.card .kicker{font-size:11px;color:var(--mist);display:flex;gap:8px;align-items:center;text-transform:uppercase;letter-spacing:.16em}
+.card h3{font-family:var(--serif);font-weight:400;font-size:21px;line-height:1.15}
+.card:hover h3{color:var(--gold-soft)}
+.card .tag{font-size:12px;color:var(--mist);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stars{position:relative;display:inline-flex;gap:2px;flex-shrink:0}
+.stars .row{display:flex;gap:2px;color:var(--edge)}
+.stars .fill{position:absolute;inset:0;overflow:hidden;color:var(--gold);pointer-events:none}
+.stars .fill .row{color:var(--gold)}
+.card .foot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-top:12px}
+.price{font-family:var(--serif);font-size:24px;line-height:1}
+.was{font-size:12px;color:var(--mist);text-decoration:line-through;margin-top:4px}
+.add{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(217,178,106,.35);background:rgba(217,178,106,.1);color:var(--gold-soft);padding:8px 14px;border-radius:99px;font-size:12px;font-weight:600;transition:.25s}
+.add:hover{background:var(--gold);color:#0b0b10}
+.add:disabled{border-color:var(--edge);background:0;color:var(--mist)}
+
+/* ---------- shop layout ---------- */
+.page-head{padding:56px 0 40px;border-bottom:1px solid var(--edge)}
+.page-head h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,6vw,80px);line-height:.95;margin-top:12px}
+.page-head p{margin-top:16px;max-width:640px;color:var(--mist)}
+.shop{display:grid;gap:40px;padding:40px 0}
+@media(min-width:1024px){.shop{grid-template-columns:260px 1fr;gap:56px}}
+.filters h4{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.fgroup{margin-bottom:30px}
+.chk{display:flex;align-items:center;gap:12px;width:100%;padding:6px 8px;border-radius:8px;text-align:left;font-size:14px;transition:.2s}
+.chk:hover{background:rgba(16,16,23,.6)}
+.box{width:16px;height:16px;border:1px solid var(--edge);border-radius:4px;display:grid;place-items:center;color:transparent;flex-shrink:0;transition:.2s}
+.chk.on .box{background:var(--gold);border-color:var(--gold);color:#0b0b10}
+.chk span.lbl{flex:1;color:var(--mist)}
+.chk.on span.lbl{color:var(--bone)}
+.chk small{font-size:11px;color:rgba(163,163,178,.7)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--edge);color:var(--mist);padding:6px 12px;border-radius:99px;font-size:12px;transition:.25s}
+.chip:hover{border-color:rgba(163,163,178,.4);color:var(--bone)}
+.chip.on{border-color:var(--gold);background:rgba(217,178,106,.15);color:var(--gold-soft)}
+.range{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--edge);border-radius:99px;margin-top:16px;cursor:pointer}
+.range::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--void)}
+.switch{position:relative;width:44px;height:24px;border-radius:99px;background:var(--edge);transition:.25s;flex-shrink:0}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--bone);transition:transform .25s}
+.switch.on{background:var(--gold)}
+.switch.on i{transform:translateX(20px)}
+.toolbar{display:none;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+@media(max-width:1023px){.toolbar{display:flex}}
+select.sel{appearance:none;border:1px solid var(--edge);background:rgba(16,16,23,.5);border-radius:99px;padding:10px 38px 10px 16px;font-size:14px;cursor:pointer}
+.shop-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.empty{border:1px dashed var(--edge);border-radius:22px;padding:80px 30px;text-align:center}
+
+/* ---------- product detail ---------- */
+.crumbs{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--mist);padding-top:40px}
+.crumbs a:hover{color:var(--bone)}
+.pd{display:grid;gap:40px;padding:32px 0}
+@media(min-width:1024px){.pd{grid-template-columns:1fr 1fr;gap:64px}}
+.gal-main{position:relative;aspect-ratio:4/5;border-radius:24px;overflow:hidden;border:1px solid var(--edge);background:var(--panel)}
+.gal-main img{width:100%;height:100%;object-fit:cover;transition:transform .7s ease-out}
+.gal-main:hover img{transform:scale(1.3)}
+.gal-main .nv{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;opacity:0;transition:.3s;backdrop-filter:blur(6px)}
+.gal-main:hover .nv{opacity:1}
+.gal-main .nv:hover{background:rgba(0,0,0,.8)}
+.dots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.dots button{height:4px;border-radius:99px;background:rgba(244,241,234,.3);transition:.4s}
+.dots button.on{width:28px;background:var(--gold)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.thumbs button{aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--edge);opacity:.6;transition:.25s}
+.thumbs button img{width:100%;height:100%;object-fit:cover}
+.thumbs button.on{border-color:var(--gold);opacity:1;box-shadow:0 0 0 1px rgba(217,178,106,.4)}
+.thumbs button:hover{opacity:1}
+.badges{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist)}
+.badges span{border:1px solid var(--edge);padding:5px 10px;border-radius:99px}
+.badges .gold-b{border-color:rgba(217,178,106,.3);background:rgba(217,178,106,.1);color:var(--gold-soft)}
+.pd h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,5.5vw,72px);line-height:.95;margin-top:18px}
+.pd .tl{font-family:var(--serif);font-size:21px;color:var(--gold-soft);font-style:italic;margin-top:12px}
+.rate{display:inline-flex;align-items:center;gap:12px;margin-top:18px;font-size:14px}
+.rate u{color:var(--mist);text-decoration:none}
+.rate u:hover{text-decoration:underline}
+.buybox{border:1px solid var(--edge);background:rgba(16,16,23,.4);border-radius:22px;padding:24px;margin-top:26px}
+.bigprice{font-family:var(--serif);font-size:48px;line-height:1}
+.save{background:var(--rose);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.opt{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--edge);border-radius:12px;padding:12px 16px;width:100%;text-align:left;margin-bottom:8px;transition:.25s}
+.opt.on{border-color:rgba(217,178,106,.6);background:rgba(217,178,106,.1)}
+.opt b{display:block;font-size:14px;font-weight:600}
+.opt small{color:var(--mist);font-size:11px}
+.qty{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--edge);border-radius:99px;padding:4px}
+.qty button{width:36px;height:36px;border-radius:50%;color:var(--mist);display:grid;place-items:center}
+.qty button:hover{background:var(--void);color:var(--bone)}
+.qty b{min-width:32px;text-align:center;font-size:14px}
+.assure{list-style:none;margin-top:22px;border-top:1px solid var(--edge);padding-top:20px;display:grid;gap:10px;font-size:12px;color:var(--mist)}
+.assure li{display:flex;align-items:center;gap:8px}
+.assure svg{color:var(--gold)}
+.spec{border:1px solid var(--edge);background:rgba(16,16,23,.3);border-radius:16px;padding:24px}
+.spec dl div{display:flex;justify-content:space-between;gap:24px;padding:11px 0;border-bottom:1px solid var(--edge)}
+.spec dl div:last-child{border:0}
+.spec dt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+.spec dd{font-size:14px;text-align:right}
+.hl{display:grid;gap:12px}
+@media(min-width:640px){.hl{grid-template-columns:1fr 1fr}}
+.hl li{list-style:none;display:flex;gap:12px;border:1px solid var(--edge);background:rgba(16,16,23,.3);border-radius:12px;padding:16px;font-size:14px}
+.hl li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:8px}
+.detail{display:grid;gap:48px;border-top:1px solid var(--edge);padding-top:56px;margin-top:80px}
+@media(min-width:1024px){.detail{grid-template-columns:1.4fr 1fr;gap:80px}}
+.detail h2{font-family:var(--serif);font-weight:400;font-size:34px;margin-top:10px}
+.detail .story{margin-top:22px;color:var(--mist);line-height:1.9}
+.detail h3{font-family:var(--serif);font-weight:400;font-size:24px;margin-top:38px}
+
+/* ---------- reviews ---------- */
+.rev{display:grid;gap:40px;border-top:1px solid var(--edge);padding-top:56px;margin-top:80px}
+@media(min-width:1024px){.rev{grid-template-columns:320px 1fr;gap:64px}}
+.score{font-family:var(--serif);font-size:60px;line-height:1}
+.bars{list-style:none;margin-top:22px;display:grid;gap:8px}
+.bars li{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--mist)}
+.bars .tr{flex:1;height:6px;border-radius:99px;background:var(--edge);overflow:hidden}
+.bars .tr i{display:block;height:100%;background:var(--gold);border-radius:99px;transition:width .7s}
+.rev-item{border:1px solid var(--edge);background:rgba(16,16,23,.3);border-radius:16px;padding:22px;margin-bottom:18px;list-style:none}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:linear-gradient(140deg,rgba(217,178,106,.3),rgba(139,92,246,.2))}
+.vbadge{border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.1);color:var(--green);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.pvbadge{border:1px solid rgba(245,158,11,.3);background:rgba(245,158,11,.1);color:#fbbf24;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.helpful{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--edge);color:var(--mist);padding:6px 12px;border-radius:99px;font-size:11px;transition:.25s;margin-top:14px}
+.helpful:hover,.helpful.did{border-color:rgba(217,178,106,.4);color:var(--gold-soft)}
+.field{width:100%;border:1px solid var(--edge);background:rgba(6,6,8,.6);border-radius:12px;padding:12px 16px;font-size:14px;outline:0;transition:border-color .25s}
+.field:focus{border-color:rgba(217,178,106,.5)}
+textarea.field{resize:vertical}
+.formrow{display:grid;gap:16px;margin-top:16px}
+@media(min-width:640px){.formrow{grid-template-columns:1fr 1fr}}
+.starpick{display:flex;gap:4px;margin-top:8px}
+.starpick button{transition:transform .2s}
+.starpick button:hover{transform:scale(1.12)}
+
+/* ---------- cart drawer ---------- */
+.overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .5s}
+.overlay.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:100%;max-width:440px;z-index:90;background:var(--ink);border-left:1px solid var(--edge);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .52s var(--ease);box-shadow:0 0 80px rgba(0,0,0,.8)}
+.drawer.on{transform:translateX(0)}
+.drawer header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--edge)}
+.iconbtn{width:40px;height:40px;border:1px solid var(--edge);border-radius:50%;display:grid;place-items:center;color:var(--mist);transition:.25s}
+.iconbtn:hover{border-color:rgba(217,178,106,.5);color:var(--bone)}
+.shipbar{padding:14px 24px;border-bottom:1px solid var(--edge)}
+.shipbar .tr{height:4px;border-radius:99px;background:var(--edge);overflow:hidden;margin-top:8px}
+.shipbar .tr i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(217,178,106,.6),var(--gold),var(--gold-soft));transition:width .7s}
+.drawer .list{flex:1;overflow-y:auto;padding:20px 24px}
+.ci{display:flex;gap:16px;margin-bottom:20px}
+.ci img{width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--edge);flex-shrink:0}
+.ci .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.drawer footer{border-top:1px solid var(--edge);padding:20px 24px}
+.rowline{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
+.rowline.muted{color:var(--mist)}
+.rowline.good{color:var(--green)}
+
+/* ---------- checkout ---------- */
+.steps{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:28px}
+.stepbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--edge);border-radius:99px;padding:6px 14px;font-size:12px;color:var(--mist);transition:.25s}
+.stepbtn.on{border-color:rgba(217,178,106,.6);background:rgba(217,178,106,.1);color:var(--gold-soft)}
+.stepbtn.done{color:var(--bone)}
+.stepbtn b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;background:var(--edge);color:var(--mist)}
+.stepbtn.on b,.stepbtn.done b{background:var(--gold);color:#0b0b10}
+.panel{border:1px solid var(--edge);background:rgba(16,16,23,.3);border-radius:24px;padding:26px}
+@media(min-width:640px){.panel{padding:34px}}
+.panel h2{font-family:var(--serif);font-weight:400;font-size:31px}
+.ck{display:grid;gap:44px}
+@media(min-width:1024px){.ck{grid-template-columns:1.25fr .85fr;gap:64px}}
+.cklabel{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist)}
+.sum{border:1px solid var(--edge);background:rgba(16,16,23,.4);border-radius:22px;padding:24px}
+.sumline{display:flex;justify-content:space-between;font-size:14px;padding:8px 0}
+.sumline span:first-child{color:var(--mist)}
+.tot{display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid var(--edge);margin-top:12px;padding-top:16px}
+.tot b{font-family:var(--serif);font-weight:400;font-size:30px}
+.summary-item{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.summary-item img{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--edge)}
+.qbadge{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#0b0b10;font-size:10px;font-weight:800;display:grid;place-items:center}
+.promo{display:flex;gap:8px}
+.promo input{flex:1;border:1px solid var(--edge);background:rgba(6,6,8,.6);border-radius:99px;padding:10px 16px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;outline:0}
+
+/* ---------- admin ---------- */
+.admintabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.atab{border:1px solid var(--edge);border-radius:99px;padding:9px 20px;font-size:13px;color:var(--mist);transition:.25s}
+.atab.on{border-color:rgba(217,178,106,.5);background:rgba(217,178,106,.1);color:var(--gold-soft)}
+.kpis{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi{border:1px solid var(--edge);background:rgba(16,16,23,.4);border-radius:16px;padding:18px}
+.kpi b{display:block;font-family:var(--serif);font-weight:400;font-size:29px;line-height:1;margin-top:8px}
+.kpi small{font-size:11px;color:var(--mist)}
+.acard{border:1px solid var(--edge);background:rgba(16,16,23,.3);border-radius:16px}
+.acard header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--edge)}
+.acard header h3{font-family:var(--serif);font-weight:400;font-size:22px}
+.tblwrap{overflow-x:auto}
+table.at{width:100%;min-width:860px;border-collapse:collapse;font-size:14px}
+table.at th{text-align:left;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mist);padding:12px 16px;border-bottom:1px solid var(--edge);font-weight:600;white-space:nowrap}
+table.at td{padding:12px 16px;border-bottom:1px solid var(--edge);vertical-align:middle}
+table.at tr:hover td{background:rgba(16,16,23,.6)}
+.tin{width:88px;border:1px solid var(--edge);background:rgba(6,6,8,.6);border-radius:8px;padding:5px 8px;font-size:12px;outline:0}
+.tin:focus{border-color:rgba(217,178,106,.5)}
+.mini{border:1px solid var(--edge);border-radius:99px;padding:4px 10px;font-size:10px;color:var(--mist);transition:.25s}
+.mini:hover{color:var(--bone)}
+.mini.on{border-color:rgba(217,178,106,.5);background:rgba(217,178,106,.15);color:var(--gold-soft)}
+.mini.cyan{border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1);color:var(--cyan)}
+.mini.rose{border-color:rgba(244,63,94,.3);color:var(--rose)}
+.mini.rose:hover{background:rgba(244,63,94,.1)}
+.modal{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px}
+.modal .box{width:100%;max-width:760px;background:var(--ink);border:1px solid var(--edge);border-radius:24px;padding:28px;margin:auto}
+.mgrid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:640px){.mgrid{grid-template-columns:1fr 1fr}}
+.mgrid .full{grid-column:1/-1}
+.st{padding:4px 10px;border-radius:99px;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.st.confirmed,.st.packing{background:var(--edge);color:var(--mist)}
+.st.shipped{background:rgba(34,211,238,.15);color:var(--cyan)}
+.st.delivered{background:rgba(52,211,153,.15);color:var(--green)}
+.st.refunded{background:rgba(244,63,94,.15);color:var(--rose)}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,120%);z-index:120;background:var(--panel);border:1px solid rgba(217,178,106,.4);color:var(--bone);padding:13px 24px;border-radius:99px;font-size:13px;font-weight:600;box-shadow:0 20px 50px -20px #000;transition:transform .45s var(--ease)}
+.toast.on{transform:translate(-50%,0)}
+
+/* ---------- footer ---------- */
+footer.site{margin-top:80px;border-top:1px solid var(--edge);background:var(--ink)}
+.fgrid{display:grid;gap:44px;padding:64px 0}
+@media(min-width:900px){.fgrid{grid-template-columns:1.4fr 2fr}}
+.fcols{display:grid;gap:32px}
+@media(min-width:640px){.fcols{grid-template-columns:repeat(3,1fr)}}
+.fcols ul{list-style:none;margin-top:16px;display:grid;gap:10px}
+.fcols a{font-size:14px;color:var(--mist);transition:.25s}
+.fcols a:hover{color:var(--bone)}
+.fbottom{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;border-top:1px solid var(--edge);padding:22px 0;font-size:12px;color:var(--mist)}
+
+/* ---------- animations ---------- */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}.rv{opacity:1;transform:none}}
+
+/* ---------- mobile ---------- */
+@media(max-width:1023px){
+  nav.main,.tools .search,.tools .btn-ghost{display:none}
+  .burger{display:grid}
+}
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr}
+  section.block{padding:56px 0}
+  .grid-p{gap:14px}
+  .card h3{font-size:18px}
+  .price{font-size:20px}
+  .wrap{padding:0 16px}
+}
+</style>
+</head>
+<body>
+<div class="ambient"><i></i><i></i></div>
+
+<div class="marquee"><div id="marquee"></div></div>
+
+<header class="top" id="topbar">
+  <div class="wrap bar">
+    <button class="burger" id="burger" aria-label="Menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <a href="#/" class="brand">
+      <span class="mark">B</span>
+      <span><b>Bha <span class="gold">Khan</span></b><small>Game Merchants</small></span>
+    </a>
+    <nav class="main" id="mainnav"></nav>
+    <div class="tools">
+      <label class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" placeholder="Search titles…" aria-label="Search games" />
+      </label>
+      <a href="#/admin" class="btn btn-ghost btn-sm">Admin</a>
+      <button class="bag" id="openCart">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h2l2.4 11.2a2 2 0 0 0 2 1.6h7.5a2 2 0 0 0 2-1.6L20.5 8H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+        Bag <em id="bagCount">0</em>
+      </button>
+    </div>
+  </div>
+  <div class="mobile" id="mobileNav"><nav id="mobilenav"></nav></div>
+</header>
+
+<main id="app"></main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <a href="#/" class="brand">
+          <span class="mark">B</span>
+          <span><b>Bha <span class="gold">Khan</span></b></span>
+        </a>
+        <p class="muted" style="margin-top:18px;max-width:340px;font-size:14px">
+          An independent game merchant since 2011. We stock what we play, we write our own
+          recommendations, and we ship worldwide in recycled packaging.
+        </p>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+          <span class="chip">Instagram</span><span class="chip">Discord</span>
+          <span class="chip">YouTube</span><span class="chip">Bluesky</span>
+        </div>
+      </div>
+      <div class="fcols">
+        <div><p class="eyebrow" style="color:var(--gold)">Shop</p><ul>
+          <li><a href="#/shop">All games</a></li>
+          <li><a href="#/shop?sort=newest">New releases</a></li>
+          <li><a href="#/shop?sale=1">On sale</a></li>
+          <li><a href="#/shop?sort=bestselling">Best sellers</a></li>
+          <li><a href="#/collections">Collections</a></li>
+        </ul></div>
+        <div><p class="eyebrow" style="color:var(--gold)">Platforms</p><ul>
+          <li><a href="#/shop?platform=PC">PC</a></li>
+          <li><a href="#/shop?platform=PlayStation%205">PlayStation 5</a></li>
+          <li><a href="#/shop?platform=Xbox%20Series%20X">Xbox Series X</a></li>
+          <li><a href="#/shop?platform=Nintendo%20Switch">Nintendo Switch</a></li>
+        </ul></div>
+        <div><p class="eyebrow" style="color:var(--gold)">Store</p><ul>
+          <li><a href="#/admin">Admin panel</a></li>
+          <li><a href="#/orders">Track an order</a></li>
+          <li><a href="#/shop?sale=1">Clearance</a></li>
+          <li><a href="#/">Home</a></li>
+        </ul></div>
+      </div>
+    </div>
+    <div class="fbottom">
+      <span>© <span id="yr"></span> Bha Khan Game Merchants. All rights reserved.</span>
+      <span style="color:var(--gold-soft)">Static demo — data lives in your browser, no real payments</span>
+    </div>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+
+<aside class="drawer" id="drawer" role="dialog" aria-label="Shopping cart">
+  <header>
+    <div><p class="eyebrow" style="color:var(--gold)">Your bag</p><h2 class="display" style="font-size:24px" id="drawerCount">0 titles</h2></div>
+    <button class="iconbtn" id="closeCart" aria-label="Close cart">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </header>
+  <div class="shipbar" id="shipbar"></div>
+  <div class="list" id="cartList"></div>
+  <footer id="cartFoot"></footer>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================================
+   1. DEMO DATA  —  edit freely, or overwrite it from the Admin → Data tab
+   ============================================================================ */
+const PX = (id,w,h)=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=${w||1200}&h=${h||800}`;
+const LOCAL = f => `images/covers/${f}`;
+
+const COLLECTIONS = [
+  {slug:"galactic-frontier",name:"Galactic Frontier",tagline:"Sci-fi epics & deep space sagas",desc:"Chart unknown systems, command fleets and terraform the impossible. Our most ambitious science-fiction worlds, hand-picked by the Bha Khan crew.",img:LOCAL("stellar-cartographer.jpg"),fb:PX(7562199),from:"#4f46e5",to:"#06b6d4"},
+  {slug:"realms-of-myth",name:"Realms of Myth",tagline:"Swords, sorcery & 100-hour stories",desc:"Hand-painted kingdoms, morally grey monarchs and loot worth bragging about. Role-playing at its most generous.",img:LOCAL("ashen-crown.jpg"),fb:PX(10414000),from:"#b45309",to:"#f43f5e"},
+  {slug:"shadow-ops",name:"Shadow Ops",tagline:"Tactical thrillers & perfect heists",desc:"Breath-held stealth, smart gunplay and set pieces that deserve the surround sound. For players who plan three moves ahead.",img:LOCAL("midnight-syndicate.jpg"),fb:PX(7915213),from:"#0f766e",to:"#a16207"},
+  {slug:"velocity-club",name:"Velocity Club",tagline:"Racing, sport & pure adrenaline",desc:"Wheel-to-wheel racing, frame-perfect drifts and championship seasons. Bring your own gloves.",img:LOCAL("neon-drift.jpg"),fb:PX(9787476),from:"#db2777",to:"#2563eb"},
+  {slug:"cozy-corner",name:"Cozy Corner",tagline:"Wholesome worlds & slow mornings",desc:"Farm, build, bake and befriend. Low-stakes games with high-craft art direction — the comfort food of our shelves.",img:LOCAL("verdant-hollow.jpg"),fb:PX(7915368),from:"#15803d",to:"#eab308"},
+  {slug:"arcade-vault",name:"Arcade Vault",tagline:"Retro revivals & couch chaos",desc:"Pixel-perfect reissues, party brawlers and roguelikes that eat entire weekends. Four controllers recommended.",img:LOCAL("iron-vanguard.jpg"),fb:PX(1346154),from:"#7c3aed",to:"#f97316"}
+];
+
+/* img = local file (works once you copy /images to your repo)
+   fb  = remote fallback used automatically if the local file is missing */
+const PRODUCTS = [
+  {slug:"eclipse-protocol",title:"Eclipse Protocol",tagline:"The station is falling. You have eleven minutes.",desc:"A tactical first-person shooter built around a collapsing orbital station that rebuilds itself every run. Breach, loot, extract — then watch the map rewrite its own geometry.",story:"Eclipse Protocol drops you into the Hesper Ring, a decommissioned shipyard that was never meant to hold atmosphere. Each contract gives you eleven minutes of breathable air, a squad of three and a station that reconfigures its corridors between deployments. The gunplay is weighty and deliberate — magazines matter, suppressors degrade, and every firefight leaves scars on the level that persist until extraction.",price:6999,compare:8999,platform:"PC",genre:"Shooter",edition:"Deluxe Edition",dev:"Vector Fathom",pub:"Northlight Interactive",year:2025,rated:"M — Mature 17+",players:"1–3 co-op",playtime:"≈ 40 hours",stock:24,featured:true,isNew:true,collection:"shadow-ops",sold:1842,img:LOCAL("eclipse-protocol.jpg"),fb:PX(9072376),highlights:["26 story contracts with full three-player cross-play co-op","Procedural station geometry that remembers your last breach","Deluxe Edition includes the Hollow Tide expansion pass","Ray-traced lighting with a 120fps performance mode"],tags:["Co-op","Tactical","Sci-Fi","Ray Tracing"]},
+  {slug:"ashen-crown",title:"Ashen Crown",tagline:"Every king you crown will betray you.",desc:"A hand-painted dark-fantasy RPG where the throne is a curse you pass to someone else. 90 hours of branching succession politics, ember-lit dungeons and gorgeous oil-painted vistas.",story:"In the kingdom of Vyr, the crown burns whoever wears it. Ashen Crown casts you as the Ember Regent — the one person immune to the fire, tasked with choosing who sits the throne and watching them unravel. Seven noble houses, four endings per house, and a reputation system that remembers slights for the entire campaign.",price:5999,compare:7499,platform:"PlayStation 5",genre:"RPG",edition:"Standard Edition",dev:"Studio Ferrous",pub:"Candleglass Press",year:2024,rated:"M — Mature 17+",players:"Single player",playtime:"≈ 90 hours",stock:17,featured:true,isNew:false,collection:"realms-of-myth",sold:2610,img:LOCAL("ashen-crown.jpg"),fb:PX(7915213),highlights:["Seven houses, twenty-eight distinct endings","Stance-based combat with full parry and riposte depth","Hand-painted environments at native 4K","48-piece orchestral score on the in-game jukebox"],tags:["Story Rich","Dark Fantasy","Choices Matter"]},
+  {slug:"neon-drift-tokyo",title:"Neon Drift: Tokyo",tagline:"Rain, rubber and a city that never brakes.",desc:"Arcade racing perfected. Eighty licensed cars, a rain-slicked open-world Tokyo and a drift model so readable you'll feel the back end go before it does.",story:"Neon Drift: Tokyo is a love letter to midnight street racing. The whole city is one seamless circuit — Shibuya to the Bayshore Route with no loading screens — and the weather system genuinely changes your line. Eighty licensed cars, each with a 200-part tuning tree, plus a livery editor deep enough that the community has already recreated half of motorsport history.",price:4999,compare:null,platform:"Xbox Series X",genre:"Racing",edition:"Standard Edition",dev:"Hashiriya Works",pub:"Apex Pacific",year:2025,rated:"E — Everyone",players:"1–16 online",playtime:"≈ 35 hours",stock:31,featured:true,isNew:true,collection:"velocity-club",sold:3104,img:LOCAL("neon-drift.jpg"),fb:PX(9787476),highlights:["Seamless open-world Tokyo with dynamic rain","80 licensed cars and a 200-part tuning tree","Two-player split screen plus 16-player online lobbies","Weekly Velocity Club seasons with live leaderboards"],tags:["Open World","Split Screen","Arcade"]},
+  {slug:"stellar-cartographer",title:"Stellar Cartographer",tagline:"Nobody has named these stars yet. You will.",desc:"A serene exploration sim about mapping a living galaxy. No combat, no timers — just a ship, a sextant and twelve thousand catalogued worlds.",story:"Stellar Cartographer is the quiet one on our shelf, and the one customers come back to thank us for. You pilot a survey vessel through the Orrin Reach, naming planets, sketching flora and selling star charts to colonies that actually use them — settlements grow along the routes you draw. There is no combat, and an adaptive soundtrack that composes itself from the spectra of whatever star you're orbiting.",price:3499,compare:4499,platform:"PC",genre:"Simulation",edition:"Explorer Edition",dev:"Orrin Collective",pub:"Longitude Games",year:2024,rated:"E — Everyone",players:"Single player",playtime:"≈ 60 hours",stock:42,featured:true,isNew:false,collection:"galactic-frontier",sold:1455,img:LOCAL("stellar-cartographer.jpg"),fb:PX(7562199),highlights:["12,000 hand-tuned procedural worlds","Trade routes that physically grow the colonies you supply","Generative soundtrack driven by stellar spectra","Award-winning accessibility suite with full remapping"],tags:["Relaxing","Exploration","No Combat"]},
+  {slug:"verdant-hollow",title:"Verdant Hollow",tagline:"Inherit a farm. Adopt a village. Sleep well.",desc:"The cosiest 60 hours on the shelf. Restore a forgotten valley, run the autumn market and romance a cast of twenty-two genuinely well-written neighbours.",story:"Verdant Hollow begins with a leaking roof and a seed packet. What follows is four in-game years of orchards, beekeeping, festival nights and slowly earning the trust of a valley that's been let down before. Every villager has a hand-authored storyline with a real arc — no repeated dialogue barks — and the farm layout tools are closer to a building game than a farming one.",price:2999,compare:null,platform:"Nintendo Switch",genre:"Simulation",edition:"Standard Edition",dev:"Tiny Lantern Studio",pub:"Meadowlark",year:2023,rated:"E — Everyone",players:"1–4 co-op",playtime:"≈ 60 hours",stock:56,featured:true,isNew:false,collection:"cozy-corner",sold:4821,img:LOCAL("verdant-hollow.jpg"),fb:PX(7915368),highlights:["22 neighbours with fully authored story arcs","Four-player shared-save co-op","Deep farm layout editor with terraforming","Handheld-first performance at a locked 60fps"],tags:["Cozy","Co-op","Farming"]},
+  {slug:"iron-vanguard",title:"Iron Vanguard",tagline:"Twelve tonnes of consequence per turn.",desc:"Turn-based mech tactics with a pilot roster you'll become unreasonably attached to. Heat management, salvage economies and permadeath you can toggle.",story:"Iron Vanguard is a tactics game about weight. Every chassis has a heat budget, every limb can be shot off and salvaged, and every pilot carries injuries between missions. The 40-mission campaign follows a bankrupt mercenary company trying to buy back its own contract, and the writing lands — your pilots talk to each other on the drop, and they remember who left whom behind.",price:4499,compare:5499,platform:"PC",genre:"Strategy",edition:"Commander Edition",dev:"Cold Foundry",pub:"Northlight Interactive",year:2024,rated:"T — Teen",players:"1–2 online",playtime:"≈ 70 hours",stock:19,featured:true,isNew:false,collection:"arcade-vault",sold:988,img:LOCAL("iron-vanguard.jpg"),fb:PX(7915219),highlights:["40-mission campaign with persistent pilot injuries","Component-level damage and salvage economy","Full mission editor with workshop support","Optional ironman permadeath for the brave"],tags:["Turn-Based","Mechs","Deep Systems"]},
+  {slug:"midnight-syndicate",title:"Midnight Syndicate",tagline:"The perfect heist is the one nobody reports.",desc:"An art-deco stealth thriller set across six impossible scores. Improvise, bluff and leave the building before anyone notices you were in it.",story:"Midnight Syndicate is six self-contained heists in a 1930s city of glass towers and gold leaf. Each level is a sandbox with dozens of valid routes — social infiltration, vents, the service elevator, or simply walking out in a stolen tuxedo. Guards use a genuine suspicion model rather than vision cones, so bluffing works.",price:5499,compare:null,platform:"PlayStation 5",genre:"Stealth",edition:"Standard Edition",dev:"Parlour Games",pub:"Gilded Owl",year:2025,rated:"T — Teen",players:"Single player",playtime:"≈ 25 hours",stock:22,featured:true,isNew:true,collection:"shadow-ops",sold:1317,img:LOCAL("midnight-syndicate.jpg"),fb:PX(7915213),highlights:["Six sandbox heists with dozens of valid solutions","Suspicion-based AI instead of vision cones","Elegance scoring and non-lethal leaderboards","Original big-band score recorded in Prague"],tags:["Stealth","Immersive Sim","Noir"]},
+  {slug:"tidebreaker",title:"Tidebreaker",tagline:"A ship, a crew and 400 islands of weather.",desc:"Open-sea adventure with the best sailing model we've ever stocked. Real wind, real crews, and shanties you'll be humming for weeks.",story:"Tidebreaker gives you a brigantine, eight crew members and the Shattered Reach — four hundred islands under a weather system that simulates fronts rather than faking them. Sailing is the whole game: trimming sails, reading swell, deciding whether a squall is a shortcut or a grave.",price:3999,compare:5999,platform:"Xbox Series X",genre:"Adventure",edition:"Captain's Edition",dev:"Harbourlight",pub:"Saltline",year:2023,rated:"T — Teen",players:"1–4 co-op",playtime:"≈ 55 hours",stock:28,featured:false,isNew:false,collection:"realms-of-myth",sold:2044,img:LOCAL("tidebreaker.jpg"),fb:PX(5713095),highlights:["Physically simulated wind, swell and weather fronts","400 islands with reactive port economies","Four-player crossplay co-op on one ship","62 original sea shanties, all skippable, none skipped"],tags:["Sailing","Co-op","Open World"]},
+  {slug:"apex-circuit-26",title:"Apex Circuit '26",tagline:"The simulation the pros practise on.",desc:"Licensed open-wheel racing with a tyre model built from real telemetry. Twenty-four circuits, full career, and wheel support that justifies the rig.",story:"Apex Circuit '26 is the serious end of our racing shelf. The tyre thermal model was validated against two seasons of real telemetry, the safety-car logic finally behaves, and the career mode lets you start in a junior series and negotiate your way up. Force feedback is the best in class.",price:6499,compare:null,platform:"PlayStation 5",genre:"Racing",edition:"Standard Edition",dev:"Slipstream Dynamics",pub:"Apex Pacific",year:2026,rated:"E — Everyone",players:"1–20 online",playtime:"≈ 80 hours",stock:14,featured:false,isNew:true,collection:"velocity-club",sold:712,img:PX(9787476),fb:PX(9787476),highlights:["Telemetry-validated tyre thermal model","24 laser-scanned circuits","Direct-drive wheel support with per-car FFB profiles","Cross-platform ranked leagues"],tags:["Simulation","Esports","Wheel Support"]},
+  {slug:"pixel-dynasty-collection",title:"Pixel Dynasty Collection",tagline:"Thirty-two classics. One beautiful box.",desc:"A lovingly emulated anthology of arcade history with rewind, save states, scanline filters and a museum of original cabinet art.",story:"The Pixel Dynasty Collection gathers thirty-two arcade and console classics from 1981 to 1997, all running on a new emulation layer with sub-frame input latency. Every title includes rewind, save states, display filters modelled from real CRT measurements, and a museum section with design documents and developer interviews.",price:2499,compare:3499,platform:"Nintendo Switch",genre:"Arcade",edition:"Anthology",dev:"Vault Editions",pub:"Vault Editions",year:2024,rated:"E10+ — Everyone 10+",players:"1–4 local",playtime:"≈ 30 hours",stock:63,featured:false,isNew:false,collection:"arcade-vault",sold:3390,img:PX(10414000),fb:PX(10414000),highlights:["32 titles with sub-frame input latency","Rewind, save states and CRT-accurate filters","Digital museum with original cabinet art","Four-player local on every eligible title"],tags:["Retro","Local Multiplayer","Anthology"]},
+  {slug:"hollow-signal",title:"Hollow Signal",tagline:"Something is answering on the emergency band.",desc:"A first-person psychological thriller set in a snowed-in radio relay. No weapons. One voice on the other end. Eight hours you won't shake off.",story:"You are the winter caretaker of Relay Nine, four hundred kilometres from anyone. Hollow Signal is played almost entirely through the station's radio desk, a window and a logbook. Transmissions arrive, you decide what to log and what to answer, and the station changes around the choices.",price:2299,compare:null,platform:"PC",genre:"Horror",edition:"Standard Edition",dev:"Nine Below",pub:"Candleglass Press",year:2025,rated:"M — Mature 17+",players:"Single player",playtime:"≈ 8 hours",stock:37,featured:false,isNew:true,collection:"shadow-ops",sold:1620,img:PX(7915219),fb:PX(7915219),highlights:["Fully voiced branching radio drama","Three endings, none of them cheap","Binaural audio mix designed for headphones","Runs beautifully on handheld PCs"],tags:["Narrative","Horror","Short & Sharp"]},
+  {slug:"lantern-and-loom",title:"Lantern & Loom",tagline:"A tailoring shop, a tea kettle, and all the time in the world.",desc:"Run a magical tailor's in a canal town. Dye fabric, design garments and dress a village of charming regulars.",story:"Lantern & Loom is a craft sim about making clothes for people who need them. The garment designer is a real tool — pattern pieces, dye baths, embroidery — and the townsfolk request outfits for weddings, funerals and first days at new jobs. Fulfil them well and the town's seasonal festivals change to include your work.",price:1999,compare:null,platform:"Nintendo Switch",genre:"Simulation",edition:"Standard Edition",dev:"Tiny Lantern Studio",pub:"Meadowlark",year:2025,rated:"E — Everyone",players:"Single player",playtime:"≈ 28 hours",stock:48,featured:false,isNew:true,collection:"cozy-corner",sold:2260,img:PX(9071747),fb:PX(9071747),highlights:["Full garment designer with dye and embroidery systems","Townsfolk remember every outfit you make them","Hand-animated 2D at 60fps","No timers, no fail states, no energy bars"],tags:["Cozy","Crafting","Wholesome"]},
+  {slug:"rift-tactics",title:"Rift Tactics",tagline:"Sixty seconds per turn. Infinite regret.",desc:"A sharp, modern squad tactics game with an elegant action-point system and a campaign that respects your time.",story:"Rift Tactics strips squad tactics back to what works: five units, three actions each, and maps small enough to read at a glance but deep enough to ruin you. The campaign is thirty missions, roughly twenty-five hours, with no filler. Async multiplayer means you can keep six matches running from your phone.",price:2799,compare:3499,platform:"PC",genre:"Strategy",edition:"Standard Edition",dev:"Cold Foundry",pub:"Gilded Owl",year:2024,rated:"T — Teen",players:"1–2 online",playtime:"≈ 25 hours",stock:33,featured:false,isNew:false,collection:"arcade-vault",sold:1105,img:PX(9072392),fb:PX(9072392),highlights:["30-mission campaign with zero filler","Asynchronous ranked multiplayer","Daily tactical puzzle with global leaderboard","Verified for handheld PCs"],tags:["Tactics","Turn-Based","Competitive"]},
+  {slug:"chrono-parade",title:"Chrono Parade",tagline:"A roguelike built out of marching bands.",desc:"Rhythm-action roguelike where every enemy moves on the beat and every run writes a new song. Absurd, brilliant, endlessly replayable.",story:"Chrono Parade is the weirdest thing we stock and we love it. You lead a parade through a city of clockwork, and everything — movement, attacks, shop prices — resolves on the beat. Each run layers instruments onto a generative score, so a good run literally sounds better.",price:1799,compare:null,platform:"PC",genre:"Roguelike",edition:"Standard Edition",dev:"Bright Metronome",pub:"Vault Editions",year:2023,rated:"E10+ — Everyone 10+",players:"1–2 local",playtime:"≈ 45 hours",stock:51,featured:false,isNew:false,collection:"arcade-vault",sold:1878,img:PX(9072385),fb:PX(9072385),highlights:["Generative soundtrack that builds as you win","140 items and nine parade leaders","Full assist mode with adjustable beat window","Import your own music library"],tags:["Roguelike","Rhythm","Replayable"]},
+  {slug:"sable-horizon",title:"Sable Horizon",tagline:"Build the colony. Keep it honest.",desc:"A colony builder about scarcity and ethics on a dust-locked moon. Beautiful, demanding, fair.",story:"Sable Horizon is a city builder where the hardest resource is trust. Your colonists have histories, grudges and opinions about your rationing policy, and the council will vote you out if you stop listening. Systems-wise it is deep — atmospheric processing, closed-loop agriculture, heat budgets — but the tutorial is excellent.",price:3299,compare:3999,platform:"PC",genre:"Strategy",edition:"Standard Edition",dev:"Orrin Collective",pub:"Longitude Games",year:2024,rated:"E10+ — Everyone 10+",players:"Single player",playtime:"≈ 65 hours",stock:26,featured:false,isNew:false,collection:"galactic-frontier",sold:1392,img:PX(7562199),fb:PX(7562199),highlights:["Colonists with persistent histories and politics","Closed-loop agriculture and heat budgeting","Campaign, sandbox and no-exports challenge","Extensive mod API"],tags:["City Builder","Survival","Sci-Fi"]},
+  {slug:"gridlock-royale",title:"Gridlock Royale",tagline:"Forty players. One shrinking city block.",desc:"A fast battle royale sold as a complete package — every cosmetic, every season pass, no store.",story:"Gridlock Royale took the battle royale formula and removed the shop. Forty players, a dense vertical city block, three-minute circles and a movement system borrowed from parkour games. You buy it once and receive every cosmetic and every seasonal track at no extra cost.",price:2999,compare:null,platform:"Xbox Series X",genre:"Shooter",edition:"Complete Edition",dev:"Vector Fathom",pub:"Northlight Interactive",year:2025,rated:"T — Teen",players:"1–40 online",playtime:"Endless",stock:9,featured:false,isNew:true,collection:"velocity-club",sold:2740,img:PX(9072388),fb:PX(9072388),highlights:["Every cosmetic included — no in-game store","Three-minute circles for fast matches","Parkour-grade movement system","Ranked, casual and 2v2 arena"],tags:["Battle Royale","Competitive","No Microtransactions"]}
+];
+
+const REVIEWS = [
+  {slug:"eclipse-protocol",author:"Dani Okonkwo",loc:"Manchester, UK",r:5,title:"The best eleven minutes in gaming",body:"I came for the shooting and stayed for the tension. Knowing the station rearranges itself means you never coast, and the extraction timer turns every greedy decision into a story.",helpful:142,days:12},
+  {slug:"eclipse-protocol",author:"Marco Villanueva",loc:"Lisbon, PT",r:5,title:"Gunplay with actual weight",body:"Recoil, magazine management and suppressor wear all matter. It is the first shooter in years where I reload because I counted, not because the UI told me to.",helpful:88,days:24},
+  {slug:"eclipse-protocol",author:"Sanaa Rahim",loc:"Toronto, CA",r:4,title:"Brilliant, but bring friends",body:"Solo with AI squadmates is good. With two humans it is exceptional. Knocking a star off only because matchmaking at off-peak hours can take a minute or two.",helpful:51,days:31},
+  {slug:"ashen-crown",author:"Elliot Brandt",loc:"Portland, US",r:5,title:"Ninety hours and I restarted immediately",body:"I have never had a game remember a throwaway decision from hour four and bring it back at hour eighty. House Vyrene's ending made me sit in silence. The parry timing is strict but fair.",helpful:219,days:48},
+  {slug:"ashen-crown",author:"Keiko Tanabe",loc:"Osaka, JP",r:5,title:"The art direction alone",body:"Every loading screen is a painting. I take more screenshots in this than any game I own. The score is on my commute playlist now.",helpful:164,days:62},
+  {slug:"ashen-crown",author:"Paul Agyeman",loc:"Accra, GH",r:4,title:"Dense, in a good way",body:"First ten hours are a lot of names and houses to keep straight. Push through — once the succession system clicks it is the most interesting RPG I've played this decade.",helpful:73,days:70},
+  {slug:"neon-drift-tokyo",author:"Ivy Chen",loc:"Singapore",r:5,title:"Feels like the arcade in my head",body:"Drifting here is pure readability — you can feel the grip go a quarter second before it does. Split screen with my brother on a Friday is the whole reason I bought a console.",helpful:196,days:8},
+  {slug:"neon-drift-tokyo",author:"Tomas Berger",loc:"Vienna, AT",r:5,title:"Rain changes everything",body:"The weather is not cosmetic. Wet Bayshore at night is a completely different track and the game knows it. Livery editor ate an entire weekend.",helpful:97,days:15},
+  {slug:"stellar-cartographer",author:"Hugo Lindqvist",loc:"Gothenburg, SE",r:5,title:"I play this instead of meditating",body:"No combat, no timers, just the hum of the ship and a nebula. Watching a colony grow along a trade route I personally charted is the most rewarding loop I've found.",helpful:178,days:34},
+  {slug:"stellar-cartographer",author:"Amara Diallo",loc:"Dakar, SN",r:5,title:"The soundtrack is generative and it works",body:"Orbiting a red dwarf genuinely sounds different from a blue giant. Sounds gimmicky, is actually sublime. Photo mode is gallery-grade.",helpful:121,days:55},
+  {slug:"verdant-hollow",author:"Nour Haddad",loc:"Beirut, LB",r:5,title:"Every villager is actually written",body:"No repeated barks, no filler dialogue. Marcus's storyline about reopening the mill had me genuinely emotional. 80 hours in and I've only seen two of the four years.",helpful:254,days:90},
+  {slug:"verdant-hollow",author:"Jamie Lowell",loc:"Bristol, UK",r:5,title:"Perfect handheld game",body:"Locked 60fps, instant suspend, and a loop that works in ten-minute bursts or four-hour evenings. My partner and I co-op on one save and it never desyncs.",helpful:133,days:102},
+  {slug:"verdant-hollow",author:"Pia Novak",loc:"Ljubljana, SI",r:5,title:"The farm editor is a building game",body:"Terraforming, path tools, greenhouse layouts — I spend more time designing than farming and the game is fine with that. Delivery from Bha Khan arrived in two days.",helpful:77,days:119},
+  {slug:"iron-vanguard",author:"Wesley Carr",loc:"Melbourne, AU",r:5,title:"I named a pilot after my dog and now I'm in pain",body:"Persistent injuries plus permadeath equals genuine stakes. The heat budget turns every alpha strike into a real decision. Mission editor is deeper than it needs to be.",helpful:112,days:41},
+  {slug:"iron-vanguard",author:"Linh Pham",loc:"Hanoi, VN",r:4,title:"Crunchy, demanding, excellent",body:"Not a beginner tactics game, but the tutorial campaign is better than most. Salvage economy means a rough mission can still be a win.",helpful:58,days:52},
+  {slug:"midnight-syndicate",author:"Clara Beaumont",loc:"Lyon, FR",r:5,title:"Bluffing actually works",body:"Walked through the lobby in a stolen tuxedo, nodded at a guard, took the elevator. No save scumming, no vision cones — the suspicion model is the real deal.",helpful:187,days:10},
+  {slug:"midnight-syndicate",author:"Isaac Fried",loc:"Tel Aviv, IL",r:5,title:"Six levels, hundred hours",body:"Short on paper, enormous in practice. I've run the Aurum Tower nine times and found a new route every time. Elegance scoring is a brilliant replay hook.",helpful:94,days:18},
+  {slug:"tidebreaker",author:"Oskar Nyberg",loc:"Helsinki, FI",r:5,title:"The sailing is the game and that's correct",body:"Reading a squall and deciding to run it is more thrilling than most boss fights. Four of us crewing one brigantine on voice chat is the best co-op I've had in years.",helpful:165,days:140},
+  {slug:"tidebreaker",author:"Georgia Hart",loc:"Auckland, NZ",r:5,title:"Weather fronts, not weather effects",body:"You can watch a system build on the horizon and plan around it. Port economies respond to your hauls, so routes feel like they matter.",helpful:108,days:156},
+  {slug:"apex-circuit-26",author:"Nils Hagen",loc:"Stuttgart, DE",r:5,title:"Direct-drive owners, this is the one",body:"Per-car force feedback profiles and a tyre model you can actually feel degrade. I shaved a second off my Spa time once I learned to read the thermals.",helpful:84,days:6},
+  {slug:"pixel-dynasty-collection",author:"Terry Walsh",loc:"Leeds, UK",r:5,title:"The emulation is the star",body:"Input latency is better than the cabinets I grew up with. The CRT filters are measured, not guessed. The museum section is worth the price on its own.",helpful:153,days:58},
+  {slug:"hollow-signal",author:"Fiona Breslin",loc:"Galway, IE",r:5,title:"Finished at 2am, messaged three people",body:"Eight hours, no weapons, and more dread than anything with a monster in it. The voice acting on the other end of the radio is extraordinary. Play with headphones.",helpful:207,days:9},
+  {slug:"lantern-and-loom",author:"Yara Mansour",loc:"Amman, JO",r:5,title:"The garment designer is a real tool",body:"Pattern pieces, dye baths, embroidery — I made a funeral coat for a character and the whole town wore my work at the memorial. I was not prepared.",helpful:128,days:20},
+  {slug:"rift-tactics",author:"Kwame Boateng",loc:"Birmingham, UK",r:5,title:"Thirty missions, zero filler",body:"Every map is a puzzle with teeth and none of them overstay. The daily puzzle has replaced my morning crossword. Async multiplayer is perfect for a work schedule.",helpful:99,days:44},
+  {slug:"chrono-parade",author:"Luca Moretti",loc:"Bologna, IT",r:5,title:"A good run literally sounds better",body:"Layering instruments as you build a streak is the smartest feedback loop I've seen. 60 hours and I still hear the brass section in my sleep.",helpful:141,days:85},
+  {slug:"sable-horizon",author:"Anders Holm",loc:"Oslo, NO",r:5,title:"The hardest resource is trust",body:"Got voted out of my own colony in hour thirty and it was entirely fair. Systems are deep but the tutorial respects you.",helpful:104,days:38},
+  {slug:"gridlock-royale",author:"Jordan Ellis",loc:"Atlanta, US",r:5,title:"No store. Imagine that.",body:"Buy once, get everything, forever. The movement system is parkour-grade and three-minute circles mean a match fits in a lunch break. Instant recommend.",helpful:231,days:14}
+];
+
+/* ============================================================================
+   2. CONFIG + PERSISTENCE
+   ============================================================================ */
+const CONFIG = { freeShip: 7500, shipFlat: 599, taxRate: 0.08, passcode: "khan2026" };
+const EDITIONS = [
+  {key:"standard",label:"Standard",delta:0,note:"Base game"},
+  {key:"deluxe",label:"Deluxe",delta:1500,note:"+ season pass & art book"},
+  {key:"collector",label:"Collector",delta:4500,note:"+ statue, vinyl, map"}
+];
+const PROMOS = {
+  BHAKHAN10:{type:"percent",value:10,label:"10% welcome discount"},
+  PLAYER1:{type:"percent",value:15,label:"15% loyalty discount"},
+  FREESHIP:{type:"shipping",value:0,label:"Free express delivery"},
+  LEVELUP5:{type:"fixed",value:500,label:"$5 off your order"}
+};
+const SORTS = [["featured","Curator's picks"],["bestselling","Best selling"],["rating","Top rated"],["newest","Newest releases"],["price-asc","Price: low to high"],["price-desc","Price: high to low"]];
+const STATUSES = ["confirmed","packing","shipped","delivered","refunded"];
+const K = {cart:"bhakhan.cart.v1",data:"bhakhan.data.v1",orders:"bhakhan.orders.v1",admin:"bhakhan.admin"};
+
+const load = (k,fb)=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):fb}catch(e){return fb}};
+const save = (k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+let DB = load(K.data,null);
+if(!DB || !DB.products || !DB.products.length){ DB = seed(); save(K.data,DB); }
+function seed(){
+  const stats={};
+  REVIEWS.forEach(r=>{stats[r.slug]=stats[r.slug]||{s:0,c:0};stats[r.slug].s+=r.r;stats[r.slug].c++;});
+  return {
+    collections:COLLECTIONS,
+    products:PRODUCTS.map((p,i)=>{
+      const st=stats[p.slug];const n=st?Math.round(st.s/st.c*10)/10:0;
+      return {...p,id:i+1,rating:n,count:st?st.c:0};
+    }),
+    reviews:REVIEWS.map((r,i)=>({...r,id:i+1,verified:true,at:Date.now()-r.days*864e5})),
+    seq:1000
+  };
+}
+
+let CART = load(K.cart,[]);
+let ORDERS = load(K.orders,[]);
+let ADMIN = sessionStorage.getItem(K.admin)==="1";
+
+/* ============================================================================
+   3. HELPERS
+   ============================================================================ */
+const $  = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> [...(r||document).querySelectorAll(s)];
+const money = c => "$"+(c/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const off = p => p.compare && p.compare>p.price ? Math.round((p.compare-p.price)/p.compare*100) : 0;
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const date = t => new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const product = slug => DB.products.find(p=>p.slug===slug);
+const collection = slug => DB.collections.find(c=>c.slug===slug);
+
+function pic(p,cls){
+  const src = p.img || p.fb || PX(10414000);
+  return `<img src="${esc(src)}" alt="${esc(p.title||"")}" loading="lazy" class="${cls||""}" onerror="this.onerror=null;this.src='${esc(p.fb||PX(10414000))}'">`;
+}
+function starRow(v,size){
+  size=size||14;const pct=Math.max(0,Math.min(5,v))/5*100;
+  const s=`<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.6l2.74 5.86 6.26.84-4.6 4.5 1.14 6.3L12 17.1l-5.54 3 1.14-6.3-4.6-4.5 6.26-.84L12 2.6z"/></svg>`;
+  return `<span class="stars"><span class="row">${s.repeat(5)}</span><span class="fill" style="width:${pct}%"><span class="row">${s.repeat(5)}</span></span></span>`;
+}
+function toast(msg){
+  const t=$("#toast");t.textContent=msg;t.classList.add("on");
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2600);
+}
+function ratings(){
+  const m={};
+  DB.reviews.forEach(r=>{m[r.slug]=m[r.slug]||{s:0,c:0};m[r.slug].s+=r.r;m[r.slug].c++;});
+  return m;
+}
+function recalc(list){
+  const m=ratings();
+  DB.products.forEach(p=>{
+    const st=m[p.slug];
+    p.rating = st?Math.round(st.s/st.c*10)/10:0;
+    p.count  = st?st.c:0;
+  });
+}
+function persist(){ save(K.data,DB); save(K.orders,ORDERS); }
+
+/* ============================================================================
+   4. CART
+   ============================================================================ */
+function cartCount(){ return CART.reduce((n,i)=>n+i.qty,0); }
+function cartSub(){  return CART.reduce((n,i)=>n+i.price*i.qty,0); }
+function cartSave(){ return CART.reduce((n,i)=>n+((i.compare||0)-i.price)*i.qty,0); }
+
+function addToCart(p,qty,editionKey){
+  qty=qty||1;
+  const ed=EDITIONS.find(e=>e.key===(editionKey||"standard"))||EDITIONS[0];
+  const key=p.slug+(ed.key==="standard"?"":"--"+ed.key);
+  const ex=CART.find(i=>i.key===key);
+  const cap=Math.max(1,p.stock||1);
+  if(ex) ex.qty=Math.min(ex.qty+qty,cap);
+  else CART.push({key,slug:p.slug,title:p.title,price:p.price+ed.delta,compare:p.compare?p.compare+ed.delta:null,
+    img:p.img,fb:p.fb,platform:p.platform,edition:ed.key==="standard"?p.edition:ed.label+" Edition",stock:p.stock,qty:Math.min(qty,cap)});
+  save(K.cart,CART); renderCart(); openDrawer(); toast(p.title+" added to your bag");
+}
+function setQty(key,q){
+  const it=CART.find(i=>i.key===key); if(!it)return;
+  if(q<=0) CART=CART.filter(i=>i.key!==key);
+  else it.qty=Math.min(q,Math.max(1,it.stock||1));
+  save(K.cart,CART); renderCart();
+}
+function priceOrder(sub,promo,mode){
+  const pr=promo?PROMOS[promo]:null;
+  let disc=0, ship=(mode==="digital"||sub>=CONFIG.freeShip)?0:CONFIG.shipFlat;
+  if(pr){ if(pr.type==="percent")disc=Math.round(sub*pr.value/100); if(pr.type==="fixed")disc=Math.min(pr.value,sub); if(pr.type==="shipping")ship=0; }
+  const tax=Math.round(Math.max(0,sub-disc)*CONFIG.taxRate);
+  return {promo:pr,disc,ship,tax,total:Math.max(0,sub-disc)+ship+tax};
+}
+function renderCart(){
+  const n=cartCount();
+  $("#bagCount").textContent=n;
+  $("#drawerCount").textContent=n+(n===1?" title":" titles");
+  const sub=cartSub(), left=Math.max(0,CONFIG.freeShip-sub);
+  $("#shipbar").innerHTML = CART.length ? `<p style="font-size:12px" class="muted">${left>0?`You're <span style="color:var(--gold-soft)">${money(left)}</span> away from free express delivery`:`<span style="color:var(--gold-soft)">Free express delivery unlocked</span>`}</p><div class="tr"><i style="width:${Math.min(100,sub/CONFIG.freeShip*100)}%"></i></div>` : "";
+  if(!CART.length){
+    $("#cartList").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:100%;text-align:center">
+      <div class="iconbtn" style="width:64px;height:64px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h2l2.4 11.2a2 2 0 0 0 2 1.6h7.5a2 2 0 0 0 2-1.6L20.5 8H6"/></svg></div>
+      <p class="display" style="font-size:21px">Your bag is empty</p><p class="muted" style="font-size:13px">Pick up where the adventure left off.</p>
+      <a href="#/shop" class="btn btn-light btn-sm" onclick="closeDrawer()">Browse the shelves</a></div>`;
+    $("#cartFoot").innerHTML=""; $("#shipbar").innerHTML=""; return;
+  }
+  $("#cartList").innerHTML=CART.map(i=>`<div class="ci">
+    <a href="#/product/${i.slug}" onclick="closeDrawer()"><img src="${esc(i.img)}" alt="" onerror="this.onerror=null;this.src='${esc(i.fb||PX(10414000))}'"></a>
+    <div style="flex:1;min-width:0">
+      <div class="top"><a href="#/product/${i.slug}" onclick="closeDrawer()" class="display" style="font-size:18px">${esc(i.title)}</a>
+        <button onclick="setQty('${i.key}',0)" style="color:var(--mist)" aria-label="Remove"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <p style="font-size:11px" class="muted">${esc(i.platform)} · ${esc(i.edition)}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+        <div class="qty">
+          <button onclick="setQty('${i.key}',${i.qty-1})" aria-label="Less"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/></svg></button>
+          <b class="mono">${i.qty}</b>
+          <button onclick="setQty('${i.key}',${i.qty+1})" ${i.qty>=i.stock?"disabled":""} aria-label="More"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <div style="text-align:right"><b style="font-size:14px" class="mono">${money(i.price*i.qty)}</b>
+        ${i.compare?`<div style="font-size:11px" class="muted mono" ><s>${money(i.compare*i.qty)}</s></div>`:""}</div>
+      </div>
+    </div></div>`).join("");
+  const sv=cartSave(), t=priceOrder(sub,CHECKOUT.promo,CHECKOUT.mode);
+  $("#cartFoot").innerHTML=`
+    <div class="rowline muted"><span>Subtotal</span><b class="mono" style="color:var(--bone)">${money(sub)}</b></div>
+    ${sv>0?`<div class="rowline good"><span>You save</span><span class="mono">−${money(sv)}</span></div>`:""}
+    <div class="rowline muted"><span>Delivery</span><b class="mono" style="color:var(--bone)">${t.ship===0?"Free":money(t.ship)}</b></div>
+    <a href="#/checkout" class="btn btn-gold" style="width:100%;margin-top:16px" onclick="closeDrawer()">Secure checkout
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="closeDrawer()">Continue shopping</button>`;
+}
+function openDrawer(){ $("#drawer").classList.add("on"); $("#overlay").classList.add("on"); document.body.style.overflow="hidden"; }
+function closeDrawer(){ $("#drawer").classList.remove("on"); $("#overlay").classList.remove("on"); document.body.style.overflow=""; }
+
+/* ============================================================================
+   5. CARD / GRID RENDERERS
+   ============================================================================ */
+function cardHTML(p){
+  const d=off(p);
+  return `<article class="card">
+    <a href="#/product/${p.slug}">
+      <div class="ph">${pic(p)}
+        <div class="flags">
+          ${p.isNew?`<span class="flag n">New</span>`:""}
+          ${d?`<span class="flag d">−${d}%</span>`:""}
+          ${p.stock>0&&p.stock<=10?`<span class="flag l">${p.stock} left</span>`:""}
+          ${p.stock<=0?`<span class="flag d">Sold out</span>`:""}
+        </div>
+        <span class="plat">${esc(p.platform)}</span>
+      </div>
+    </a>
+    <div class="body">
+      <div class="kicker">${esc(p.genre)}<i style="width:4px;height:4px;border-radius:50%;background:var(--edge)"></i>${p.year}</div>
+      <a href="#/product/${p.slug}"><h3>${esc(p.title)}</h3></a>
+      <p class="tag">${esc(p.tagline)}</p>
+      <div style="display:flex;align-items:center;gap:8px">${starRow(p.rating,13)}<span style="font-size:11px" class="muted mono">${p.rating.toFixed(1)} (${p.count})</span></div>
+      <div class="foot">
+        <div><div class="price mono">${money(p.price)}</div>${p.compare?`<div class="was mono">${money(p.compare)}</div>`:""}</div>
+        <button class="add" ${p.stock<=0?"disabled":""} onclick='addToCart(DB.products.find(x=>x.slug==="${p.slug}"),1,"standard")'>
+          ${p.stock<=0?"Sold out":`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg> Add`}</button>
+      </div>
+    </div></article>`;
+}
+function gridHTML(list){ return `<div class="grid-p">${list.map(cardHTML).join("")}</div>`; }
+
+function reveal(){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.1,rootMargin:"0px 0px -40px 0px"});
+  $$(".rv").forEach((el,i)=>{el.style.transitionDelay=(i%4)*70+"ms";io.observe(el)});
+}
+
+/* ============================================================================
+   6. VIEWS
+   ============================================================================ */
+const CHECKOUT = {step:0,mode:"express",promo:"",form:{name:"",email:"",address:"",city:"",zip:"",country:"United States",card:"",exp:"",cvc:""}};
+
+function viewHome(){
+  const feat=DB.products.slice().sort((a,b)=>(b.featured-a.featured)||a.id-b.id);
+  const hero=feat[0], spot=DB.products.find(p=>p.slug==="ashen-crown")||feat[1];
+  const news=DB.products.filter(p=>p.isNew).slice(0,4);
+  const deals=DB.products.filter(p=>off(p)>0).sort((a,b)=>off(b)-off(a)).slice(0,4);
+  const totalR=DB.reviews.length, sold=DB.products.reduce((n,p)=>n+(p.sold||0),0);
+  const top=DB.reviews.slice().sort((a,b)=>b.helpful-a.helpful).slice(0,3);
+
+  return `<section class="hero">
+    <div class="hero-bg"><img src="images/hero.jpg" alt="" onerror="this.onerror=null;this.src='${PX(9072394)}'"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="pill rv"><i></i> Est. 2011 · Independent game merchants</span>
+        <h1 class="rv">Games worth<br><span class="gold" style="font-style:italic">keeping on</span><br>the shelf.</h1>
+        <p class="lead rv">Bha Khan is a small shop with strong opinions. ${DB.products.length} hand-picked titles across PC and console — each one played, written up and priced honestly by people who finish the credits.</p>
+        <div class="hero-cta rv">
+          <a href="#/shop" class="btn btn-light">Browse the shop
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a href="#/collections" class="btn btn-ghost">Explore collections</a>
+        </div>
+        <div class="stats rv">
+          <div><span>Titles in stock</span><b>${DB.products.length}</b></div>
+          <div><span>Verified reviews</span><b>${totalR}</b></div>
+          <div><span>Copies shipped</span><b>${(sold/1000).toFixed(1)}k</b></div>
+        </div>
+      </div>
+      ${hero?`<a href="#/product/${hero.slug}" class="hero-card rv">
+        <div class="ph">${pic(hero)}<span class="tag-new">Shop pick of the month</span>
+          <div class="meta">
+            <p class="eyebrow" style="color:var(--gold-soft)">${esc(hero.genre)} · ${esc(hero.platform)}</p>
+            <h2 class="display" style="font-size:30px;margin-top:6px">${esc(hero.title)}</h2>
+            <p class="muted" style="font-size:12px;margin-top:4px">${esc(hero.tagline)}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+              <span style="display:flex;align-items:center;gap:8px">${starRow(hero.rating,14)}<span class="muted" style="font-size:11px">${hero.count} reviews</span></span>
+              <span class="display mono" style="font-size:24px">${money(hero.price)}</span>
+            </div>
+          </div>
+        </div></a>`:""}
+    </div>
+  </section>
+
+  <section class="block"><div class="wrap">
+    <div class="sec-head rv"><div><p class="eyebrow" style="color:var(--gold)">Curated shelves</p><h2>Featured collections</h2></div>
+      <a href="#/collections" class="muted" style="font-size:14px">See all six →</a></div>
+    <div class="colls">${DB.collections.map(c=>`<a href="#/collections/${c.slug}" class="coll rv">
+      <img src="${esc(c.img)}" alt="${esc(c.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(c.fb)}'">
+      <div class="tint" style="background:linear-gradient(150deg,${c.from},${c.to})"></div>
+      <div class="shade"></div>
+      <div class="txt"><h3>${esc(c.name)}</h3><p style="font-size:12px;color:rgba(244,241,234,.7)">${esc(c.tagline)}</p>
+      <span class="go">Shop collection <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>`).join("")}
+    </div>
+  </div></section>
+
+  <div class="band"><section class="block"><div class="wrap">
+    <div class="sec-head rv"><div><p class="eyebrow" style="color:var(--gold)">Signed off by the counter</p><h2>Curator's picks</h2></div>
+      <a href="#/shop" class="btn btn-ghost btn-sm">View all ${DB.products.length} titles</a></div>
+    ${gridHTML(feat.slice(0,8))}
+  </div></section></div>
+
+  ${spot?`<section class="block" style="position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;z-index:-1"><img src="${esc(spot.img)}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:.22" onerror="this.onerror=null;this.src='${esc(spot.fb)}'">
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,var(--void),rgba(6,6,8,.85))"></div></div>
+    <div class="wrap" style="display:grid;gap:44px;align-items:center">
+      <div class="rv" style="max-width:340px;margin:0 auto;width:100%;position:relative">
+        <div style="position:absolute;inset:-16px;border-radius:28px;background:linear-gradient(140deg,rgba(217,178,106,.25),transparent);filter:blur(30px)"></div>
+        <img src="${esc(spot.img)}" alt="${esc(spot.title)}" style="position:relative;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:18px;border:1px solid var(--edge)" onerror="this.onerror=null;this.src='${esc(spot.fb)}'">
+      </div>
+      <div class="rv"><p class="eyebrow" style="color:var(--gold)">Staff spotlight</p>
+        <h2 class="display" style="font-size:clamp(40px,5vw,72px);line-height:.95;margin-top:14px">${esc(spot.title)}</h2>
+        <p class="display" style="font-size:21px;color:var(--gold-soft);font-style:italic;margin-top:14px">${esc(spot.tagline)}</p>
+        <p class="muted" style="margin-top:18px;max-width:640px">${esc(spot.desc)}</p>
+        <ul class="hl" style="margin-top:26px;list-style:none">${spot.highlights.map(h=>`<li>${esc(h)}</li>`).join("")}</ul>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-top:32px">
+          <a href="#/product/${spot.slug}" class="btn btn-light">View ${money(spot.price)}</a>
+          <span style="display:flex;align-items:center;gap:10px">${starRow(spot.rating,16)}<span class="muted" style="font-size:14px">${spot.rating.toFixed(1)} from ${spot.count} reviews</span></span>
+        </div>
+      </div>
+    </div></section>`:""}
+
+  <section class="block"><div class="wrap">
+    <div class="sec-head rv"><div><p class="eyebrow" style="color:var(--gold)">Hot off the press</p><h2>Just landed</h2></div><a href="#/shop?sort=newest" class="muted" style="font-size:14px">All new releases →</a></div>
+    ${gridHTML(news)}
+    <div class="sec-head rv" style="margin-top:70px"><div><p class="eyebrow" style="color:var(--rose)">Clearance shelf</p><h2>This week's deals</h2></div><a href="#/shop?sale=1" class="muted" style="font-size:14px">All reductions →</a></div>
+    ${gridHTML(deals)}
+  </div></section>
+
+  <div class="band"><section class="block"><div class="wrap">
+    <div class="sec-head rv"><div><p class="eyebrow" style="color:var(--gold)">From the community</p><h2 style="max-width:720px">${totalR} verified reviews, written by people who finished the game.</h2></div></div>
+    <div class="colls">${top.map(r=>{const p=product(r.slug);return `<figure class="acard rv" style="padding:24px">
+      ${starRow(r.r,14)}
+      <figcaption class="display" style="font-size:21px;margin-top:14px">${esc(r.title)}</figcaption>
+      <blockquote class="muted" style="font-size:14px;margin-top:8px">“${esc(r.body)}”</blockquote>
+      <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--edge);margin-top:18px;padding-top:16px">
+        <span class="av">${esc(r.author.split(" ").map(x=>x[0]).join("").slice(0,2))}</span>
+        <span style="min-width:0"><b style="font-size:14px;font-weight:500;display:block">${esc(r.author)}</b>
+        <small class="muted" style="font-size:11px">${esc(r.loc)} · on <a href="#/product/${r.slug}" style="color:var(--gold-soft)">${esc(p?p.title:"")}</a></small></span>
+      </div></figure>`}).join("")}</div>
+  </div></section></div>
+
+  <section class="block"><div class="wrap"><div class="acard rv" style="border-radius:24px;padding:34px;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-80px;top:-90px;width:280px;height:280px;border-radius:50%;background:rgba(217,178,106,.1);filter:blur(80px)"></div>
+    <div style="display:grid;gap:28px;align-items:center" class="nl">
+      <div><p class="eyebrow" style="color:var(--gold)">The Dispatch</p>
+        <h2 class="display" style="font-size:clamp(30px,4vw,46px);margin-top:12px">One email a week.<br><span class="gold">Only the good stuff.</span></h2>
+        <p class="muted" style="margin-top:14px;max-width:440px;font-size:14px">Release dates we actually trust, price drops worth acting on, and a staff review that isn't a press release.</p></div>
+      <form onsubmit="return subscribe(event)" style="display:flex;gap:10px;flex-wrap:wrap" id="nlform">
+        <input type="email" required placeholder="you@example.com" class="field" style="flex:1;min-width:200px;border-radius:99px">
+        <button class="btn btn-light" type="submit">Subscribe</button>
+      </form>
+    </div></div></div></section>`;
+}
+function subscribe(e){e.preventDefault();$("#nlform").innerHTML=`<div class="acard" style="padding:24px;border-color:rgba(217,178,106,.3);background:rgba(217,178,106,.08)"><p class="display" style="font-size:22px;color:var(--gold-soft)">You're on the list.</p><p class="muted" style="font-size:13px;margin-top:6px">Check your inbox for a welcome code worth 10% off your first order.</p></div>`;return false;}
+
+function parseQS(){
+  const h=location.hash.split("?")[1]||"";
+  return [...new URLSearchParams(h).entries()].reduce((o,[k,v])=>(o[k]=v,o),{});
+}
+
+function filterProducts(q){
+  let list=DB.products.slice();
+  if(q.q){const t=q.q.toLowerCase();list=list.filter(p=>[p.title,p.tagline,p.genre,p.dev,p.pub].join(" ").toLowerCase().includes(t));}
+  if(q.platform)list=list.filter(p=>q.platform.split(",").includes(p.platform));
+  if(q.genre)list=list.filter(p=>q.genre.split(",").includes(p.genre));
+  if(q.coll)list=list.filter(p=>p.collection===q.coll);
+  if(q.max)list=list.filter(p=>p.price<=+q.max);
+  if(q.sale==="1")list=list.filter(p=>off(p)>0);
+  const s=q.sort||"featured";
+  const by={
+    "price-asc":(a,b)=>a.price-b.price,
+    "price-desc":(a,b)=>b.price-a.price,
+    "rating":(a,b)=>b.rating-a.rating||b.count-a.count,
+    "newest":(a,b)=>b.year-a.year||(b.isNew-a.isNew),
+    "bestselling":(a,b)=>(b.sold||0)-(a.sold||0),
+    "featured":(a,b)=>(b.featured-a.featured)||a.id-b.id
+  }[s]||((a,b)=>0);
+  return list.sort(by);
+}
+
+function viewShop(){
+  const q=parseQS();
+  const plats=[...new Set(DB.products.map(p=>p.platform))].sort();
+  const genres=[...new Set(DB.products.map(p=>p.genre))].sort();
+  const maxP=Math.ceil(Math.max(...DB.products.map(p=>p.price))/1000)*1000;
+  const sel={platform:q.platform?q.platform.split(","):[],genre:q.genre?q.genre.split(","):[]};
+  const curMax=q.max?+q.max:maxP;
+  const list=filterProducts(q);
+  const sortVal=q.sort||"featured";
+
+  return `<div class="wrap">
+    <div class="page-head"><p class="eyebrow" style="color:var(--gold)">The shelves</p>
+      <h1 class="rv">Every game we stock</h1>
+      <p class="rv">${DB.products.length} titles, each one played and written up by the shop. Filter by platform, genre or budget — or sort by what other customers are actually finishing.</p></div>
+    <div class="shop">
+      <aside>
+        <div class="toolbar">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fside').classList.toggle('hide')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg> Filters</button>
+          ${sortSelect(sortVal)}
+        </div>
+        <div id="fside" class="filters ${window.innerWidth<1024?"hide":""}" style="${window.innerWidth<1024?"position:fixed;inset:0;z-index:85;background:var(--ink);padding:24px;overflow-y:auto":""}">
+          ${window.innerWidth<1024?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><b class="display" style="font-size:24px">Filters</b><button class="iconbtn" onclick="document.getElementById('fside').classList.add('hide')">✕</button></div>`:""}
+          <div class="fgroup"><h4>Platform</h4><div style="margin-top:12px">
+            ${plats.map(p=>`<button class="chk ${sel.platform.includes(p)?"on":""}" onclick="goto({platform:'${sel.platform.includes(p)?sel.platform.filter(x=>x!==p):[...sel.platform,p].join(",")}'})">
+              <span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="m4 12 5 5L20 6"/></svg></span>
+              <span class="lbl">${esc(p)}</span><small>${DB.products.filter(x=>x.platform===p).length}</small></button>`).join("")}</div></div>
+          <div class="fgroup"><h4>Genre</h4><div class="chips" style="margin-top:12px">
+            ${genres.map(g=>`<button class="chip ${sel.genre.includes(g)?"on":""}" onclick="goto({genre:'${sel.genre.includes(g)?sel.genre.filter(x=>x!==g):[...sel.genre,g].join(",")}'})">${esc(g)} <small style="opacity:.6">${DB.products.filter(x=>x.genre===g).length}</small></button>`).join("")}</div></div>
+          <div class="fgroup"><h4>Max price</h4>
+            <p style="margin-top:10px;font-size:14px" class="mono">${money(curMax)}</p>
+            <input type="range" class="range" min="1000" max="${maxP}" step="500" value="${curMax}" onchange="goto({max:this.value>=${maxP}?'':this.value})"></div>
+          <div class="fgroup"><h4>Collection</h4><div style="margin-top:12px">
+            <button class="chk ${!q.coll?"on":""}" onclick="goto({coll:''})"><span class="box"></span><span class="lbl">All collections</span></button>
+            ${DB.collections.map(c=>`<button class="chk ${q.coll===c.slug?"on":""}" onclick="goto({coll:'${q.coll===c.slug?"":c.slug}'})"><span class="box"></span><span class="lbl">${esc(c.name)}</span></button>`).join("")}</div></div>
+          <div class="fgroup" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--edge);border-radius:12px;padding:12px 16px">
+            <span style="font-size:14px">On sale only</span>
+            <button class="switch ${q.sale==="1"?"on":""}" role="switch" aria-checked="${q.sale==="1"}" onclick="goto({sale:'${q.sale==="1"?"":"1"}'})"><i></i></button></div>
+          <button class="btn btn-ghost btn-sm" style="width:100%" onclick="location.hash='#/shop'">Clear all filters</button>
+        </div>
+      </aside>
+      <section>
+        <div class="shop-top" style="display:flex">
+          <p style="font-size:14px" class="muted">Showing <b style="color:var(--bone)" class="mono">${list.length}</b> of <span class="mono">${DB.products.length}</span> titles</p>
+          <span style="display:none" class="deskSort">${sortSelect(sortVal)}</span>
+        </div>
+        ${list.length?gridHTML(list):`<div class="empty"><p class="display" style="font-size:30px">Nothing on this shelf</p>
+          <p class="muted" style="margin-top:12px;max-width:380px;margin-left:auto;margin-right:auto;font-size:14px">Try widening your price range or clearing a filter — we restock weekly and take requests at the counter.</p>
+          <a href="#/shop" class="btn btn-light" style="margin-top:26px">Reset filters</a></div>`}
+      </section>
+    </div></div>`;
+}
+function sortSelect(v){
+  return `<select class="sel" onchange="goto({sort:this.value==='featured'?'':this.value})" aria-label="Sort products">
+    ${SORTS.map(([k,l])=>`<option value="${k}" ${k===v?"selected":""}>${l}</option>`).join("")}</select>`;
+}
+function goto(patch){
+  const q=parseQS();Object.assign(q,patch);
+  Object.keys(q).forEach(k=>{if(q[k]===""||q[k]==null)delete q[k]});
+  const s=new URLSearchParams(q).toString();
+  location.hash="#/shop"+(s?"?"+s:"");
+}
+
+function viewCollections(){
+  return `<div class="wrap">
+    <div class="page-head"><p class="eyebrow" style="color:var(--gold)">Curated shelves</p>
+      <h1 class="rv">Collections</h1>
+      <p class="rv">Six shelves, assembled the way we'd arrange them in a physical shop — by mood as much as by genre.</p></div>
+    <div style="display:grid;gap:22px;padding:44px 0">
+    ${DB.collections.map((c,i)=>{
+      const items=DB.products.filter(p=>p.collection===c.slug);
+      const min=items.length?Math.min(...items.map(p=>p.price)):0;
+      const avg=items.length?(items.reduce((n,p)=>n+p.rating,0)/items.length).toFixed(1):"0";
+      return `<a href="#/collections/${c.slug}" class="acard rv" style="display:grid;overflow:hidden;border-radius:22px" >
+        <div style="display:grid;grid-template-columns:1fr" class="collrow">
+        <div style="position:relative;height:220px;overflow:hidden">
+          <img src="${esc(c.img)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null;this.src='${esc(c.fb)}'">
+          <div style="position:absolute;inset:0;background:linear-gradient(150deg,${c.from},${c.to});mix-blend-mode:multiply;opacity:.6"></div></div>
+        <div style="padding:28px;display:flex;flex-direction:column;justify-content:center;gap:14px">
+          <div><p class="eyebrow" style="color:var(--gold)">${esc(c.tagline)}</p>
+          <h2 class="display" style="font-size:clamp(30px,4vw,44px);margin-top:10px">${esc(c.name)}</h2></div>
+          <p class="muted" style="font-size:14px">${esc(c.desc)}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:20px;font-size:12px" class="muted">
+            <span><b style="color:var(--bone)">${items.length}</b> titles</span>
+            <span>From <b style="color:var(--bone)">${money(min)}</b></span>
+            <span><b style="color:var(--bone)">${avg}</b> avg rating</span></div>
+          <div style="display:flex;gap:8px">${items.slice(0,5).map(p=>`<img src="${esc(p.img)}" alt="" style="width:44px;height:44px;border-radius:9px;object-fit:cover;border:2px solid var(--ink)" onerror="this.onerror=null;this.src='${esc(p.fb)}'">`).join("")}</div>
+        </div></div></a>`}).join("")}
+    </div></div>`;
+}
+
+function viewCollection(slug){
+  const c=collection(slug);
+  if(!c) return missing();
+  const items=DB.products.filter(p=>p.collection===slug);
+  const min=items.length?Math.min(...items.map(p=>p.price)):0;
+  const avg=items.length?(items.reduce((n,p)=>n+p.rating,0)/items.length).toFixed(1):"0";
+  return `<section style="position:relative;overflow:hidden;border-bottom:1px solid var(--edge)">
+    <div style="position:absolute;inset:0;z-index:-1"><img src="${esc(c.img)}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:.35" onerror="this.onerror=null;this.src='${esc(c.fb)}'">
+      <div style="position:absolute;inset:0;background:linear-gradient(140deg,${c.from},${c.to});mix-blend-mode:multiply;opacity:.5"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(0deg,var(--void),rgba(6,6,8,.7))"></div></div>
+    <div class="wrap" style="padding:80px 0">
+      <div class="crumbs"><a href="#/">Home</a><span>/</span><a href="#/collections">Collections</a><span>/</span><span style="color:var(--bone)">${esc(c.name)}</span></div>
+      <p class="eyebrow rv" style="color:var(--gold-soft);margin-top:28px">${esc(c.tagline)}</p>
+      <h1 class="display rv" style="font-size:clamp(44px,8vw,92px);line-height:.9;margin-top:14px;max-width:860px">${esc(c.name)}</h1>
+      <p class="rv" style="margin-top:18px;max-width:620px;color:rgba(244,241,234,.82)">${esc(c.desc)}</p>
+      <div class="stats rv" style="border-color:rgba(255,255,255,.1);margin-top:36px">
+        <div><span>Titles</span><b>${items.length}</b></div>
+        <div><span>From</span><b>${money(min)}</b></div>
+        <div><span>Avg rating</span><b>${avg}</b></div></div>
+    </div></section>
+    <div class="wrap" style="padding:52px 0">
+      ${items.length?gridHTML(items):`<div class="empty">This shelf is being restocked — check back soon.</div>`}
+      <div style="margin-top:70px;border-top:1px solid var(--edge);padding-top:44px">
+        <p class="eyebrow" style="color:var(--gold)">Other shelves</p>
+        <div class="chips" style="margin-top:18px">${DB.collections.filter(x=>x.slug!==slug).map(x=>
+          `<a href="#/collections/${x.slug}" class="chip" style="display:flex;gap:10px;align-items:center;padding:8px 16px 8px 8px">
+            <img src="${esc(x.img)}" alt="" style="width:34px;height:34px;border-radius:9px;object-fit:cover" onerror="this.onerror=null;this.src='${esc(x.fb)}'">
+            <span>${esc(x.name)}</span></a>`).join("")}</div>
+      </div></div>`;
+}
+
+let GAL=0;
+function viewProduct(slug){
+  const p=product(slug); if(!p) return missing();
+  const c=collection(p.collection);
+  const revs=DB.reviews.filter(r=>r.slug===slug).sort((a,b)=>b.helpful-a.helpful);
+  const rel=DB.products.filter(x=>x.slug!==slug&&(x.collection===p.collection||x.genre===p.genre)).slice(0,4);
+  const avg=revs.length?revs.reduce((n,r)=>n+r.r,0)/revs.length:p.rating;
+  const gal=(p.gallery&&p.gallery.length?p.gallery:[p.img,p.fb].filter(Boolean)).slice(0,4);
+  GAL=0;
+  const specs=[["Platform",p.platform],["Genre",p.genre],["Edition",p.edition],["Developer",p.dev],["Publisher",p.pub],["Released",p.year],["Rating",p.rated],["Players",p.players],["Average playtime",p.playtime],["SKU","BK-"+p.slug.toUpperCase().slice(0,10)+"-"+p.id]];
+
+  return `<div class="wrap">
+    <div class="crumbs"><a href="#/">Home</a><span>/</span><a href="#/shop">Shop</a>${c?`<span>/</span><a href="#/collections/${c.slug}">${esc(c.name)}</a>`:""}<span>/</span><span style="color:var(--bone)">${esc(p.title)}</span></div>
+    <div class="pd">
+      <div>
+        <div class="gal-main" id="galMain">
+          <img id="galImg" src="${esc(gal[0])}" alt="${esc(p.title)}" onerror="this.onerror=null;this.src='${esc(p.fb||gal[0])}'">
+          <span class="tag-new">${p.isNew?"New release":off(p)?"−"+off(p)+"% today":"In stock"}</span>
+          ${gal.length>1?`<button class="nv" style="left:12px" onclick="galMove(-1)" aria-label="Previous"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+          <button class="nv" style="right:12px" onclick="galMove(1)" aria-label="Next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>
+          <div class="dots">${gal.map((g,i)=>`<button onclick="galSet(${i})" data-d="${i}" style="width:${i===0?"28px":"12px"}"></button>`).join("")}</div>`:""}
+        </div>
+        ${gal.length>1?`<div class="thumbs">${gal.map((g,i)=>`<button onclick="galSet(${i})" data-t="${i}" class="${i===0?"on":""}"><img src="${esc(g)}" alt="" onerror="this.onerror=null;this.src='${esc(p.fb)}'"></button>`).join("")}</div>`:""}
+      </div>
+      <div>
+        <div class="badges rv"><span>${esc(p.platform)}</span><span>${esc(p.genre)}</span>${c?`<span class="gold-b">${esc(c.name)}</span>`:""}</div>
+        <h1 class="rv">${esc(p.title)}</h1>
+        <p class="tl rv">${esc(p.tagline)}</p>
+        <a href="#reviews" class="rate rv">${starRow(avg,16)}<b class="mono">${avg.toFixed(1)}</b><u class="muted">${revs.length} verified reviews</u></a>
+        <p class="muted rv" style="margin-top:20px">${esc(p.desc)}</p>
+
+        <div class="buybox rv" id="buybox">
+          <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+            <span class="bigprice mono" id="bbPrice">${money(p.price)}</span>
+            ${p.compare?`<s class="muted mono" style="font-size:17px" id="bbWas">${money(p.compare)}</s>`:""}
+            <span class="save" id="bbSave">Save ${off(p)}%</span>
+          </div>
+          <p class="muted" style="font-size:12px;margin-top:8px">Or 4 interest-free payments of <span id="bbSplit" class="mono">${money(Math.round(p.price/4))}</span>. Taxes calculated at checkout.</p>
+
+          <div style="margin-top:24px"><p class="eyebrow" style="color:var(--gold)">Edition</p><div style="margin-top:12px">
+            ${EDITIONS.map((e,i)=>`<button class="opt ${i===0?"on":""}" data-ed="${e.key}" onclick="pickEdition('${e.key}',${e.delta},${p.price},${p.compare||0})">
+              <span><b>${e.label}</b><small>${e.note}</small></span><span class="mono" style="font-size:13px">${e.delta?"+"+money(e.delta):"Included"}</span></button>`).join("")}</div></div>
+
+          <div style="display:flex;align-items:center;gap:16px;margin-top:22px;flex-wrap:wrap">
+            <div class="qty"><button onclick="bbQty(-1)" aria-label="Less"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg></button>
+              <b class="mono" id="bbQty">1</b>
+              <button onclick="bbQty(1)" aria-label="More"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button></div>
+            <p style="font-size:12px" class="muted">${p.stock<=0?`<span style="color:var(--rose)">Out of stock — join the waitlist</span>`:p.stock<=10?`<span style="color:#fbbf24">Only ${p.stock} copies left in the shop</span>`:`<span style="color:var(--green)">In stock</span> · ships within 24 hours`}</p>
+          </div>
+
+          <div style="display:grid;gap:10px;margin-top:20px">
+            <button class="btn btn-gold" ${p.stock<=0?"disabled":""} onclick="buyNow()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.4 11.2a2 2 0 0 0 2 1.6h7.5a2 2 0 0 0 2-1.6L20.5 8H6"/></svg>
+              ${p.stock<=0?"Sold out":"Add to bag"}</button>
+            <button class="btn btn-ghost" ${p.stock<=0?"disabled":""} onclick="buyNow(true)">Buy it now</button>
+          </div>
+
+          <ul class="assure">${["Free tracked express delivery over $75","30-day returns on unopened copies","Price-match promise for 14 days","Instant digital keys delivered by email"].map(t=>
+            `<li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m4 12 5 5L20 6"/></svg>${t}</li>`).join("")}</ul>
+        </div>
+
+        <div class="chips rv" style="margin-top:22px">${p.tags.map(t=>`<a class="chip" href="#/shop?q=${encodeURIComponent(t)}">#${esc(t)}</a>`).join("")}</div>
+      </div>
+    </div>
+
+    <div class="detail">
+      <div class="rv"><p class="eyebrow" style="color:var(--gold)">The long version</p>
+        <h2>About this game</h2><p class="story">${esc(p.story)}</p>
+        <h3>Why we stock it</h3><ul class="hl" style="margin-top:16px;list-style:none">${p.highlights.map(h=>`<li>${esc(h)}</li>`).join("")}</ul></div>
+      <div class="rv">
+        <div class="spec"><p class="eyebrow" style="color:var(--gold)">Specifications</p>
+          <dl style="margin-top:16px">${specs.map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></div>
+        <div class="acard" style="margin-top:18px;padding:24px;background:linear-gradient(140deg,rgba(16,16,23,.6),var(--void))">
+          <p class="display" style="font-size:23px">Shop notes</p>
+          <p class="muted" style="font-size:14px;margin-top:10px">Every copy is checked at the counter before it ships. If a disc arrives scuffed or a key fails to redeem, message us and we replace it the same day — no receipt gymnastics.</p>
+          <p style="font-size:12px;color:var(--gold-soft);margin-top:14px">— The Bha Khan counter team</p></div>
+      </div>
+    </div>
+
+    <div class="rev" id="reviews">
+      <div class="rv"><p class="eyebrow" style="color:var(--gold)">Verified reviews</p>
+        <h2 class="display" style="font-size:34px;margin-top:10px">What players say</h2>
+        <div style="display:flex;align-items:flex-end;gap:16px;margin-top:22px">
+          <span class="score">${avg.toFixed(1)}</span>
+          <span style="padding-bottom:6px">${starRow(avg,16)}<p class="muted" style="font-size:12px;margin-top:4px">${revs.length} review${revs.length===1?"":"s"}</p></span></div>
+        <ul class="bars">${[5,4,3,2,1].map(s=>{const n=revs.filter(r=>r.r===s).length;return `<li><span style="width:26px" class="mono">${s}★</span><span class="tr"><i style="width:${revs.length?n/revs.length*100:0}%"></i></span><span style="width:20px;text-align:right" class="mono">${n}</span></li>`}).join("")}</ul>
+        <button class="btn btn-ghost" style="width:100%;margin-top:22px;border-color:rgba(217,178,106,.4);background:rgba(217,178,106,.1);color:var(--gold-soft)" onclick="toggleRevForm()">Write a review</button>
+        <form id="revform" class="hide acard" style="padding:22px;margin-top:18px" onsubmit="return submitReview(event,'${p.slug}')">
+          <p class="display" style="font-size:22px">Share your verdict</p>
+          <p class="eyebrow muted" style="margin-top:16px">Your rating</p>
+          <div class="starpick" id="starpick">${[1,2,3,4,5].map(s=>`<button type="button" onclick="setStars(${s})" data-s="${s}" style="color:var(--gold)"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.6l2.74 5.86 6.26.84-4.6 4.5 1.14 6.3L12 17.1l-5.54 3 1.14-6.3-4.6-4.5 6.26-.84L12 2.6z"/></svg></button>`).join("")}</div>
+          <div class="formrow"><input class="field" id="rfA" placeholder="Your name" required><input class="field" id="rfL" placeholder="City, country (optional)"></div>
+          <input class="field" id="rfT" placeholder="Headline" required style="margin-top:16px">
+          <textarea class="field" id="rfB" rows="4" placeholder="What worked, what didn't, who should buy it…" required style="margin-top:16px"></textarea>
+          <button class="btn btn-light" style="margin-top:18px">Publish review</button>
+        </form>
+      </div>
+      <div class="rv">
+        <div class="chips" style="margin-bottom:20px">
+          ${[["helpful","Most helpful"],["recent","Most recent"],["high","Highest rated"],["low","Lowest rated"]].map(([k,l],i)=>
+          `<button class="chip ${i===0?"on":""}" data-rs="${k}" onclick="sortReviews('${k}')">${l}</button>`).join("")}</div>
+        <ul id="revlist">${revListHTML(revs)}</ul>
+      </div>
+    </div>
+
+    ${rel.length?`<section style="margin-top:80px;border-top:1px solid var(--edge);padding-top:52px">
+      <div class="sec-head"><div><p class="eyebrow" style="color:var(--gold)">Keep browsing</p><h2 class="display" style="font-size:36px;margin-top:10px">You might also like</h2></div>
+      <a href="#/shop" class="muted" style="font-size:14px">Back to the shelves →</a></div>
+      ${gridHTML(rel)}</section>`:""}
+  </div>`;
+}
+function revListHTML(list){
+  if(!list.length) return `<li class="empty">No reviews yet — be the first to write one.</li>`;
+  return list.map(r=>`<li class="rev-item">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:12px;align-items:center">
+        <span class="av">${esc(r.author.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase())}</span>
+        <span><b style="font-size:14px;font-weight:600">${esc(r.author)}</b>
+        <small class="muted" style="font-size:11px;display:block">${r.loc?esc(r.loc)+" · ":""}${date(r.at)}</small></span></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="${r.verified?"vbadge":"pvbadge"}">${r.verified?"Verified buyer":"Pending"}</span>${starRow(r.r,13)}</div></div>
+    <h3 class="display" style="font-size:21px;margin-top:14px">${esc(r.title)}</h3>
+    <p class="muted" style="font-size:14px;margin-top:8px">${esc(r.body)}</p>
+    <button class="helpful" onclick="markHelpful(${r.id},this)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0 4.5-8a2.2 2.2 0 0 1 3 2.7L13.5 9H19a2 2 0 0 1 2 2.4l-1.3 6A2 2 0 0 1 17.7 19H7"/></svg>
+      Helpful (<span>${r.helpful}</span>)</button></li>`).join("");
+}
+let REV_SORT="helpful", REV_SLUG="";
+function sortReviews(mode){
+  REV_SORT=mode;$$("[data-rs]").forEach(b=>b.classList.toggle("on",b.dataset.rs===mode));
+  paintReviews();
+}
+function paintReviews(){
+  const list=DB.reviews.filter(r=>r.slug===REV_SLUG).slice().sort((a,b)=>
+    REV_SORT==="recent"?b.at-a.at:REV_SORT==="high"?b.r-a.r||b.helpful-a.helpful:REV_SORT==="low"?a.r-b.r||b.helpful-a.helpful:b.helpful-a.helpful);
+  $("#revlist").innerHTML=revListHTML(list);
+}
+function markHelpful(id,btn){
+  const r=DB.reviews.find(x=>x.id===id); if(!r||btn.classList.contains("did"))return;
+  r.helpful++; persist(); btn.classList.add("did"); btn.querySelector("span").textContent=r.helpful;
+}
+let STAR=5;
+function setStars(n){STAR=n;$$("#starpick button").forEach(b=>b.style.color=+b.dataset.s<=n?"var(--gold)":"var(--edge)");}
+function toggleRevForm(){$("#revform").classList.toggle("hide");setStars(5);}
+function submitReview(e,slug){
+  e.preventDefault();
+  const a=$("#rfA").value.trim(),t=$("#rfT").value.trim(),b=$("#rfB").value.trim();
+  if(!a||!t||b.length<10){toast("Add a name, headline and at least 10 characters.");return false;}
+  DB.reviews.unshift({id:Date.now(),slug,author:a,loc:$("#rfL").value.trim(),r:STAR,title:t,body:b,verified:false,helpful:0,at:Date.now()});
+  recalc(); persist(); REV_SLUG=slug; REV_SORT="recent"; route();
+  toast("Thanks — your review is live."); return false;
+}
+let BBQ=1, BBE="standard", BBD=0;
+function pickEdition(key,delta,price,compare){
+  BBE=key;BBD=delta;
+  $$("[data-ed]").forEach(b=>b.classList.toggle("on",b.dataset.ed===key));
+  bbPrice(price,compare);
+}
+function bbPrice(price,compare){
+  const p=product(location.hash.split("/")[2]);
+  price=p?p.price:price; compare=p?p.compare||0:compare;
+  const u=price+BBD, c=compare?compare+BBD:0;
+  $("#bbPrice").textContent=money(u);
+  if(c){const w=$("#bbWas");if(w)w.textContent=money(c);
+    const d=Math.round((c-u)/c*100);const s=$("#bbSave");if(s&&d>0)s.textContent="Save "+d+"%";}
+  const sp=$("#bbSplit"); if(sp)sp.textContent=money(Math.round(u/4));
+}
+function bbQty(d){
+  const p=product(location.hash.split("/")[2]); if(!p)return;
+  BBQ=Math.max(1,Math.min((p.stock||1),BBQ+d));
+  $("#bbQty").textContent=BBQ;
+}
+function galSet(i){
+  const p=product(location.hash.split("/")[2]); if(!p)return;
+  const gal=(p.gallery&&p.gallery.length?p.gallery:[p.img,p.fb].filter(Boolean)).slice(0,4);
+  GAL=(i+gal.length)%gal.length;
+  const img=$("#galImg"); img.style.opacity=0;
+  setTimeout(()=>{img.src=gal[GAL];img.style.opacity=1;},120);
+  $$("[data-d]").forEach((b,bi)=>{b.classList.toggle("on",bi===GAL);b.style.width=bi===GAL?"28px":"12px"});
+  $$("[data-t]").forEach((b,bi)=>b.classList.toggle("on",bi===GAL));
+}
+function galMove(d){galSet(GAL+d);}
+function buyNow(goCheckout){
+  const p=product(location.hash.split("/")[2]); if(!p)return;
+  addToCart(p,BBQ,BBE);
+  if(goCheckout){closeDrawer();location.hash="#/checkout";}
+}
+
+/* ------------------------------- CHECKOUT -------------------------------- */
+function viewCheckout(){
+  if(!CART.length) return `<div class="wrap"><div class="empty" style="margin:60px 0"><p class="display" style="font-size:38px">Your bag is empty</p>
+    <p class="muted" style="margin-top:12px">Add a title or two and we'll get you checked out in under a minute.</p>
+    <a href="#/shop" class="btn btn-light" style="margin-top:28px">Browse the shop</a></div></div>`;
+  const sub=cartSub(), t=priceOrder(sub,CHECKOUT.promo,CHECKOUT.mode), sv=cartSave();
+  const f=CHECKOUT.form;
+  const ok=[f.email.includes("@")&&f.name.trim().length>1,
+            CHECKOUT.mode==="digital"||(f.address.trim().length>3&&f.city.trim().length>1&&f.zip.trim().length>2),
+            f.card.replace(/\s/g,"").length>=15&&/^\d{2}\/\d{2}$/.test(f.exp)&&f.cvc.length>=3,true];
+  const steps=["Contact","Delivery","Payment","Review"];
+
+  return `<div class="wrap" style="padding:56px 0">
+    <p class="eyebrow" style="color:var(--gold)">Almost there</p>
+    <h1 class="display" style="font-size:clamp(38px,5vw,64px);margin-top:12px">Checkout</h1>
+    <div class="ck" style="margin-top:36px">
+      <div>
+        <div class="steps">${steps.map((s,i)=>`<button class="stepbtn ${i===CHECKOUT.step?"on":i<CHECKOUT.step?"done":""}" onclick="cstep(${i})">
+          <b>${i<CHECKOUT.step?"✓":i+1}</b>${s}</button>${i<3?'<span style="width:20px;height:1px;background:var(--edge)"></span>':""}`).join("")}</div>
+
+        <div class="panel">
+        ${CHECKOUT.step===0?`<div style="display:grid;gap:20px">
+          <div><h2>Who are we shipping to?</h2><p class="muted" style="font-size:14px;margin-top:8px">We'll email your receipt, tracking and any digital keys here.</p></div>
+          <label><span class="cklabel">Full name</span><input class="field" style="margin-top:8px" value="${esc(f.name)}" oninput="noteFocus();cf('name',this.value,this)" placeholder="Alex Morgan"></label>
+          <label><span class="cklabel">Email address</span><input type="email" class="field" style="margin-top:8px" value="${esc(f.email)}" oninput="noteFocus();cf('email',this.value,this)" placeholder="you@example.com">
+          <span class="muted" style="font-size:11px;margin-top:6px;display:block">Digital keys arrive within 60 seconds.</span></label></div>`:""}
+
+        ${CHECKOUT.step===1?`<div style="display:grid;gap:20px">
+          <div><h2>Delivery</h2><p class="muted" style="font-size:14px;margin-top:8px">Pick how you'd like your games.</p></div>
+          <div style="display:grid;gap:12px" class="formrow">
+            ${[["express","Express courier","2–4 working days, tracked & insured",sub>=CONFIG.freeShip?"Free":money(CONFIG.shipFlat)],
+               ["digital","Digital keys","Delivered by email in under a minute","Free"]].map(([k,ti,bo,pr])=>
+            `<button class="opt ${CHECKOUT.mode===k?"on":""}" onclick="cmode('${k}')"><span><b>${ti}</b><small>${bo}</small></span><span class="mono" style="font-size:14px">${pr}</span></button>`).join("")}</div>
+          ${CHECKOUT.mode==="express"?`<label><span class="cklabel">Street address</span><input class="field" style="margin-top:8px" value="${esc(f.address)}" oninput="noteFocus();cf('address',this.value,this)" placeholder="14 Lantern Row"></label>
+          <div class="formrow"><label><span class="cklabel">City</span><input class="field" style="margin-top:8px" value="${esc(f.city)}" oninput="noteFocus();cf('city',this.value,this)" placeholder="Manchester"></label>
+          <label><span class="cklabel">Postal code</span><input class="field" style="margin-top:8px" value="${esc(f.zip)}" oninput="noteFocus();cf('zip',this.value,this)" placeholder="M1 4AB"></label></div>
+          <label><span class="cklabel">Country</span><select class="field" style="margin-top:8px" onchange="cf('country',this.value)">
+            ${["United States","United Kingdom","Canada","Australia","Germany","France","Japan","Singapore","United Arab Emirates"].map(c=>`<option ${f.country===c?"selected":""}>${c}</option>`).join("")}</select></label>`:""}
+          </div>`:""}
+
+        ${CHECKOUT.step===2?`<div style="display:grid;gap:20px">
+          <div><h2>Payment</h2><p class="muted" style="font-size:14px;margin-top:8px">Demo storefront — use any digits, no card is ever charged.</p></div>
+          <label><span class="cklabel">Card number</span><input class="field mono" style="margin-top:8px;letter-spacing:.18em" value="${esc(f.card)}" oninput="cf('card',this.value.replace(/\\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim(),this)" placeholder="4242 4242 4242 4242"></label>
+          <div class="formrow"><label><span class="cklabel">Expiry</span><input class="field mono" style="margin-top:8px" value="${esc(f.exp)}" oninput="cf('exp',fmtExp(this.value),this)" placeholder="09/28"></label>
+          <label><span class="cklabel">CVC</span><input class="field mono" style="margin-top:8px" value="${esc(f.cvc)}" oninput="cf('cvc',this.value.replace(/\\D/g,'').slice(0,4),this)" placeholder="123"></label></div>
+          <div style="display:flex;gap:10px;align-items:center;border:1px solid var(--edge);border-radius:12px;padding:12px 16px;font-size:12px" class="muted">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            Secured with 256-bit TLS. We never store card details.</div></div>`:""}
+
+        ${CHECKOUT.step===3?`<div style="display:grid;gap:20px">
+          <div><h2>Review &amp; place order</h2><p class="muted" style="font-size:14px;margin-top:8px">One last look before we pack it up.</p></div>
+          <div class="formrow"><div style="border:1px solid var(--edge);border-radius:12px;padding:16px"><span class="cklabel">Contact</span>
+            <p style="margin-top:8px;font-size:14px">${esc(f.name)||"—"}<br><span class="muted">${esc(f.email)}</span></p></div>
+          <div style="border:1px solid var(--edge);border-radius:12px;padding:16px"><span class="cklabel">Delivery</span>
+            <p style="margin-top:8px;font-size:14px">${CHECKOUT.mode==="digital"?"Digital keys by email":esc(f.address)||"—"}<br><span class="muted">${esc(f.city)} ${esc(f.zip)}, ${esc(f.country)}</span></p></div></div>
+          <ul style="list-style:none;border:1px solid var(--edge);border-radius:12px;overflow:hidden">
+            ${CART.map(i=>`<li style="display:flex;gap:14px;align-items:center;padding:14px;border-bottom:1px solid var(--edge)">
+              <img src="${esc(i.img)}" alt="" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.onerror=null;this.src='${esc(i.fb)}'">
+              <span style="flex:1;min-width:0"><b style="font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.title)}</b>
+              <small class="muted" style="font-size:11px">${esc(i.edition)} · ${esc(i.platform)} · ×${i.qty}</small></span>
+              <span class="mono" style="font-size:14px">${money(i.price*i.qty)}</span></li>`).join("")}</ul></div>`:""}
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--edge);margin-top:28px;padding-top:22px">
+            <button class="muted" style="font-size:14px" onclick="cback()">${CHECKOUT.step===0?"← Keep shopping":"← Back"}</button>
+            ${CHECKOUT.step<3?`<button class="btn btn-light" ${ok[CHECKOUT.step]?"":"disabled"} onclick="cstep(${CHECKOUT.step+1})">Continue</button>`
+              :`<button class="btn btn-gold" onclick="placeOrder()">Pay ${money(t.total)}</button>`}
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="sum">
+          <p class="display" style="font-size:24px">Order summary</p>
+          <div style="margin-top:18px">${CART.map(i=>`<div class="summary-item"><span style="position:relative">
+            <img src="${esc(i.img)}" alt="" onerror="this.onerror=null;this.src='${esc(i.fb)}'"><em class="qbadge">${i.qty}</em></span>
+            <span style="flex:1;min-width:0"><b style="font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.title)}</b>
+            <small class="muted" style="font-size:11px">${esc(i.edition)}</small></span>
+            <span class="mono" style="font-size:14px">${money(i.price*i.qty)}</span></div>`).join("")}</div>
+          <div style="border-top:1px solid var(--edge);margin-top:18px;padding-top:18px">
+            <div class="promo"><input id="promoIn" value="${esc(CHECKOUT.promo)}" placeholder="Promo code" oninput="this.value=this.value.toUpperCase()">
+            <button class="btn btn-ghost btn-sm" onclick="applyPromo()">Apply</button></div>
+            <p class="muted" style="font-size:11px;margin-top:8px">Try <span style="color:var(--gold-soft)">BHAKHAN10</span> or <span style="color:var(--gold-soft)">PLAYER1</span></p>
+            ${CHECKOUT.promo&&PROMOS[CHECKOUT.promo]?`<p style="font-size:11px;color:var(--green);margin-top:8px">${CHECKOUT.promo} applied — ${PROMOS[CHECKOUT.promo].label}</p>`:""}
+          </div>
+          <div style="border-top:1px solid var(--edge);margin-top:18px;padding-top:16px">
+            <div class="sumline"><span>Subtotal</span><b class="mono">${money(sub)}</b></div>
+            ${sv>0?`<div class="sumline" style="color:var(--green)"><span>Sale savings</span><span class="mono">−${money(sv)}</span></div>`:""}
+            ${t.disc>0?`<div class="sumline" style="color:var(--green)"><span>Promo</span><span class="mono">−${money(t.disc)}</span></div>`:""}
+            <div class="sumline"><span>Delivery</span><b class="mono">${t.ship===0?"Free":money(t.ship)}</b></div>
+            <div class="sumline"><span>Estimated tax</span><b class="mono">${money(t.tax)}</b></div>
+            <div class="tot"><b>Total</b><b class="mono">${money(t.total)}</b></div>
+          </div>
+        </div>
+        <p class="muted" style="font-size:11px;margin-top:14px;padding:0 8px;line-height:1.7">Static demo — no payment is processed. Orders are saved in this browser and appear instantly in the admin panel.</p>
+      </aside>
+    </div></div>`;
+}
+function fmtExp(v){const d=v.replace(/\D/g,"").slice(0,4);return d.length>2?d.slice(0,2)+"/"+d.slice(2):d;}
+function cf(k,v,el){
+  CHECKOUT.form[k]=v;
+  if(/^(card|exp|cvc)$/.test(k)&&el){const p=el.selectionStart;el.value=v;try{el.setSelectionRange(p,p)}catch(e){}}
+}
+function cstep(n){CHECKOUT.step=Math.max(0,Math.min(3,n));route();}
+function cback(){if(CHECKOUT.step===0)location.hash="#/shop";else cstep(CHECKOUT.step-1);}
+function cmode(m){CHECKOUT.mode=m;route();}
+function applyPromo(){
+  const c=$("#promoIn").value.trim().toUpperCase();
+  if(PROMOS[c]){CHECKOUT.promo=c;toast(c+" applied");}
+  else{CHECKOUT.promo="";toast("That code isn't recognised.");}
+  route();
+}
+function placeOrder(){
+  const f=CHECKOUT.form, sub=cartSub(), t=priceOrder(sub,CHECKOUT.promo,CHECKOUT.mode);
+  const num="BK"+Array.from({length:6},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
+  ORDERS.unshift({id:Date.now(),num,at:Date.now(),status:"confirmed",email:f.email,name:f.name,
+    address:f.address,city:f.city,zip:f.zip,country:f.country,mode:CHECKOUT.mode,
+    promo:CHECKOUT.promo||null,sub,disc:t.disc,ship:t.ship,tax:t.tax,total:t.total,
+    items:CART.map(i=>({key:i.key,slug:i.slug,title:i.title,edition:i.edition,platform:i.platform,price:i.price,qty:i.qty,img:i.img,fb:i.fb}))});
+  save(K.orders,ORDERS);
+  DB.seq=(DB.seq||1000)+1;
+  ORDERS[0].items.forEach(it=>{const p=product(it.slug);if(p){p.sold=(p.sold||0)+it.qty;p.stock=Math.max(0,p.stock-it.qty);}});
+  persist();
+  CART=[];save(K.cart,CART);renderCart();
+  CHECKOUT.step=0;CHECKOUT.promo="";
+  location.hash="#/orders/"+num;
+}
+
+function viewOrder(num){
+  const o=ORDERS.find(x=>x.num===num);
+  if(!o) return missing();
+  const eta=new Date(o.at+864e5*3);
+  return `<div class="wrap" style="padding:64px 0;max-width:900px">
+    <div style="text-align:center"><span class="iconbtn" style="width:64px;height:64px;margin:0 auto;border-color:rgba(217,178,106,.4);background:rgba(217,178,106,.1);color:var(--gold)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 12 5 5L20 6"/></svg></span>
+      <p class="eyebrow rv" style="color:var(--gold);margin-top:24px">Order ${o.num}</p>
+      <h1 class="display rv" style="font-size:clamp(38px,6vw,68px);line-height:.95;margin-top:14px">Thank you, ${esc(o.name.split(" ")[0])}.</h1>
+      <p class="muted rv" style="margin-top:16px;max-width:460px;margin-left:auto;margin-right:auto">Your order is confirmed and a receipt is on its way to <b style="color:var(--bone)">${esc(o.email)}</b>. ${o.mode==="digital"?"Your keys will arrive by email within the minute.":"Estimated delivery "+date(eta)+"."}</p></div>
+    <div class="acard rv" style="margin-top:44px;overflow:hidden">
+      <div style="display:grid;gap:20px;padding:26px;border-bottom:1px solid var(--edge)" class="formrow">
+        <div><span class="cklabel">Placed</span><p style="margin-top:6px;font-size:14px">${date(o.at)}</p></div>
+        <div><span class="cklabel">Delivery</span><p style="margin-top:6px;font-size:14px;text-transform:capitalize">${o.mode}</p>
+          ${o.mode==="express"?`<small class="muted" style="font-size:11px">${esc(o.address)}, ${esc(o.city)} ${esc(o.zip)}, ${esc(o.country)}</small>`:""}</div>
+        <div><span class="cklabel">Status</span><p style="margin-top:6px"><span class="st shipped">${o.status}</span></p></div></div>
+      <ul style="list-style:none">${o.items.map(i=>`<li style="display:flex;gap:16px;align-items:center;padding:20px;border-bottom:1px solid var(--edge)">
+        <img src="${esc(i.img)}" alt="" style="width:72px;height:72px;border-radius:12px;object-fit:cover" onerror="this.onerror=null;this.src='${esc(i.fb)}'">
+        <span style="flex:1;min-width:0"><a href="#/product/${i.slug}" class="display" style="font-size:20px">${esc(i.title)}</a>
+        <small class="muted" style="font-size:12px;display:block">${esc(i.edition)} · ${esc(i.platform)} · Qty ${i.qty}</small></span>
+        <span class="mono">${money(i.price*i.qty)}</span></li>`).join("")}</ul>
+      <div style="padding:26px">
+        <div class="sumline"><span class="muted">Subtotal</span><b class="mono">${money(o.sub)}</b></div>
+        ${o.disc>0?`<div class="sumline" style="color:var(--green)"><span>Promo ${o.promo||""}</span><span class="mono">−${money(o.disc)}</span></div>`:""}
+        <div class="sumline"><span class="muted">Delivery</span><b class="mono">${o.ship===0?"Free":money(o.ship)}</b></div>
+        <div class="sumline"><span class="muted">Tax</span><b class="mono">${money(o.tax)}</b></div>
+        <div class="tot"><b class="display" style="font-size:24px">Total paid</b><b class="mono" style="font-size:30px">${money(o.total)}</b></div></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:36px;flex-wrap:wrap">
+      <a href="#/shop" class="btn btn-light">Continue shopping</a>
+      <a href="#/admin" class="btn btn-ghost">Open admin panel</a></div></div>`;
+}
+
+function viewOrdersLookup(){
+  if(!ORDERS.length) return `<div class="wrap"><div class="empty" style="margin:60px 0"><p class="display" style="font-size:36px">No orders yet</p>
+    <p class="muted" style="margin-top:12px">Once you place an order it will be listed here for tracking.</p>
+    <a href="#/shop" class="btn btn-light" style="margin-top:26px">Start shopping</a></div></div>`;
+  return `<div class="wrap" style="padding:56px 0;max-width:900px">
+    <p class="eyebrow" style="color:var(--gold)">Order history</p>
+    <h1 class="display" style="font-size:clamp(36px,5vw,56px);margin-top:12px">Your orders</h1>
+    <ul style="list-style:none;margin-top:32px;display:grid;gap:14px">
+    ${ORDERS.map(o=>`<li><a href="#/orders/${o.num}" class="acard" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:18px">
+      <span class="mono" style="font-size:12px;color:var(--gold-soft)">${o.num}</span>
+      <span style="flex:1;min-width:0"><b style="font-size:14px">${esc(o.name)}</b><small class="muted" style="font-size:11px;display:block">${o.items.length} item(s) · ${date(o.at)}</small></span>
+      <span class="st ${o.status}">${o.status}</span><b class="mono">${money(o.total)}</b></a></li>`).join("")}</ul></div>`;
+}
+
+function missing(){
+  return `<div class="wrap" style="min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 0">
+    <div><p class="eyebrow" style="color:var(--gold)">Error 404</p>
+    <h1 class="display" style="font-size:clamp(44px,10vw,90px);line-height:.9;margin-top:18px">This shelf is empty</h1>
+    <p class="muted" style="margin-top:18px;max-width:420px;margin-left:auto;margin-right:auto">We couldn't find that page. It may have sold out, moved shelves, or never existed.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap">
+      <a href="#/shop" class="btn btn-light">Browse the shop</a><a href="#/" class="btn btn-ghost">Back home</a></div></div></div>`;
+}
+
+/* ============================================================================
+   7. ADMIN PANEL
+   ============================================================================ */
+let ATAB="dash", AEDIT=null, AQ="";
+
+function viewAdmin(){
+  if(!ADMIN) return viewAdminLogin();
+  const P=DB.products, R=DB.reviews, O=ORDERS;
+  const rev=O.filter(o=>o.status!=="refunded").reduce((n,o)=>n+o.total,0);
+  const units=O.reduce((n,o)=>n+o.items.reduce((m,i)=>m+i.qty,0),0);
+  const aov=O.length?Math.round(rev/O.length):0;
+  const low=P.filter(p=>p.stock<=20).sort((a,b)=>a.stock-b.stock).slice(0,5);
+  const top=P.slice().sort((a,b)=>b.rating-a.rating).slice(0,5);
+  const genres=[...new Set(P.map(p=>p.genre))].map(g=>({g,n:P.filter(p=>p.genre===g).length})).sort((a,b)=>b.n-a.n);
+  const maxG=Math.max(1,...genres.map(x=>x.n));
+  const avgR=R.length?R.reduce((n,r)=>n+r.r,0)/R.length:0;
+
+  return `<div class="wrap" style="padding:40px 0 20px">
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--edge);padding-bottom:22px">
+      <div><p class="eyebrow" style="color:var(--gold)">Bha Khan back office</p>
+        <h1 class="display" style="font-size:36px;margin-top:8px">Operations console</h1></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="#/shop" class="btn btn-ghost btn-sm">View storefront</a>
+        <button class="btn btn-sm" style="border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.1);color:var(--rose)" onclick="adminOut()">Sign out</button></div>
+    </div>
+
+    <div class="admintabs" style="margin-top:22px">
+      ${[["dash","Dashboard"],["cat","Catalogue"],["ord","Orders"],["rev","Reviews"],["data","Data"]].map(([k,l])=>
+      `<button class="atab ${ATAB===k?"on":""}" onclick="ATAB='${k}';AEDIT=null;route()">${l}</button>`).join("")}
+    </div>
+
+    ${ATAB==="dash"?`
+      <div class="kpis" style="margin-top:8px">
+        ${[["Revenue booked",money(rev),O.length+" orders"],["Units ordered",units,P.reduce((n,p)=>n+(p.sold||0),0)+" lifetime sold"],
+          ["Average order",money(aov),"$"+(O.reduce((n,o)=>n+o.disc,0)/100).toFixed(2)+" discounted"],
+          ["Catalogue",P.length,P.filter(p=>p.featured).length+" featured"],
+          ["Stock on hand",P.reduce((n,p)=>n+p.stock,0),low.length+" titles running low"],
+          ["Reviews",R.length,avgR.toFixed(1)+"★ average"]].map(([l,v,s])=>
+        `<div class="kpi"><small class="eyebrow muted" style="letter-spacing:.18em">${l}</small><b>${v}</b><small>${s}</small></div>`).join("")}
+      </div>
+      <div style="display:grid;gap:20px;margin-top:22px" class="formrow">
+        <div class="acard"><header><h3>Latest orders</h3><a href="#/admin" onclick="ATAB='ord';route()" class="muted" style="font-size:12px">Manage all →</a></header>
+          ${O.length?`<div class="tblwrap"><table class="at"><tbody>${O.slice(0,6).map(o=>
+            `<tr><td class="mono" style="color:var(--gold-soft);font-size:12px">${o.num}</td><td>${esc(o.name)}<br><small class="muted" style="font-size:11px">${o.items.length} item(s) · ${date(o.at)}</small></td>
+            <td><span class="st ${o.status}">${o.status}</span></td><td style="text-align:right" class="mono">${money(o.total)}</td></tr>`).join("")}</tbody></table></div>`
+          :`<p class="muted" style="padding:40px;text-align:center;font-size:14px">No orders yet. Place one from the storefront and it appears here instantly.</p>`}</div>
+        <div class="acard" style="padding:22px"><h3 class="display" style="font-size:22px">Catalogue by genre</h3>
+          <ul style="list-style:none;margin-top:16px;display:grid;gap:10px">${genres.map(x=>
+            `<li style="display:flex;align-items:center;gap:12px;font-size:12px"><span class="muted" style="width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.g)}</span>
+            <span style="flex:1;height:6px;border-radius:99px;background:var(--edge);overflow:hidden"><i style="display:block;height:100%;background:linear-gradient(90deg,rgba(217,178,106,.6),var(--gold));width:${x.n/maxG*100}%"></i></span>
+            <span class="mono" style="width:18px;text-align:right">${x.n}</span></li>`).join("")}</ul></div>
+      </div>
+      <div style="display:grid;gap:20px;margin-top:20px" class="formrow">
+        <div class="acard"><header><h3>Low stock</h3><a href="#/admin" onclick="ATAB='cat';route()" class="muted" style="font-size:12px">Restock →</a></header>
+          <ul style="list-style:none">${low.map(p=>`<li style="display:flex;gap:14px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--edge)">
+            <img src="${esc(p.img)}" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover" onerror="this.onerror=null;this.src='${esc(p.fb)}'">
+            <span style="flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</span>
+            <span class="st" style="background:${p.stock<=10?"rgba(244,63,94,.15);color:var(--rose)":"rgba(245,158,11,.15);color:#fbbf24"}">${p.stock} left</span></li>`).join("")}</ul></div>
+        <div class="acard"><header><h3>Top rated</h3><a href="#/shop?sort=rating" class="muted" style="font-size:12px">Storefront →</a></header>
+          <ul style="list-style:none">${top.map(p=>`<li style="display:flex;gap:14px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--edge)">
+            <img src="${esc(p.img)}" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover" onerror="this.onerror=null;this.src='${esc(p.fb)}'">
+            <span style="flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</span>
+            <small class="muted mono" style="font-size:11px">${p.rating.toFixed(1)}★ (${p.count})</small>
+            <span class="mono" style="font-size:12px">${money(p.price)}</span></li>`).join("")}</ul></div>
+      </div>`:""}
+
+    ${ATAB==="cat"?adminCatalogue():""}
+    ${ATAB==="ord"?adminOrders():""}
+    ${ATAB==="rev"?adminReviews():""}
+    ${ATAB==="data"?adminData():""}
+  </div>${AEDIT?productModal():""}`;
+}
+
+function viewAdminLogin(){
+  return `<div class="wrap" style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:60px 0">
+    <div class="acard" style="max-width:420px;width:100%;padding:32px;border-radius:24px">
+      <span class="mark" style="width:44px;height:44px;font-size:22px">B</span>
+      <h1 class="display" style="font-size:34px;margin-top:22px">Back office</h1>
+      <p class="muted" style="font-size:14px;margin-top:8px">Sign in to manage stock, pricing, orders and reviews.</p>
+      <form onsubmit="return adminIn(event)" style="margin-top:24px;display:grid;gap:14px">
+        <label><span class="cklabel">Passcode</span><input type="password" id="pin" class="field" style="margin-top:8px" placeholder="••••••••" required></label>
+        <button class="btn btn-gold" type="submit">Enter the back office</button>
+      </form>
+      <p class="muted" style="font-size:11px;margin-top:18px;border:1px solid var(--edge);border-radius:12px;padding:12px;line-height:1.7">
+        Demo passcode: <b style="color:var(--gold-soft)">khan2026</b> — change it in the <code style="color:var(--bone)">CONFIG.passcode</code> constant at the top of the script.</p>
+      <a href="#/" class="muted" style="font-size:12px;display:block;text-align:center;margin-top:18px">← Back to the storefront</a>
+    </div></div>`;
+}
+function adminIn(e){
+  e.preventDefault();
+  if($("#pin").value.trim()===CONFIG.passcode){ADMIN=true;sessionStorage.setItem(K.admin,"1");ATAB="dash";route();toast("Welcome back.");}
+  else toast("Incorrect passcode.");
+  return false;
+}
+function adminOut(){ADMIN=false;sessionStorage.removeItem(K.admin);location.hash="#/";}
+
+function adminCatalogue(){
+  const list=DB.products.filter(p=>[p.title,p.genre,p.platform,p.slug].join(" ").toLowerCase().includes(AQ.toLowerCase()));
+  return `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px">
+    <input class="field" style="max-width:280px" id="fAq" placeholder="Search catalogue…" value="${esc(AQ)}" oninput="noteFocus();AQ=this.value;route()">
+    <span class="muted" style="font-size:12px">${list.length} of ${DB.products.length} titles</span>
+    <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="editProduct(null)">+ New product</button></div>
+  <div class="acard tblwrap" style="margin-top:18px"><table class="at">
+    <thead><tr><th>Title</th><th>Platform</th><th>Genre</th><th>Price ¢</th><th>Stock</th><th>Flags</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>${list.map(p=>`<tr>
+      <td><div style="display:flex;gap:12px;align-items:center"><img src="${esc(p.img)}" alt="" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.onerror=null;this.src='${esc(p.fb)}'">
+        <div style="min-width:0"><b style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:200px">${esc(p.title)}</b><small class="muted" style="font-size:11px">${esc(p.slug)}</small></div></div></td>
+      <td><small class="muted">${esc(p.platform)}</small></td><td><small class="muted">${esc(p.genre)}</small></td>
+      <td><input class="tin mono" type="number" value="${p.price}" onchange="quick(${p.id},{price:+this.value})"></td>
+      <td><input class="tin mono" type="number" value="${p.stock}" style="border-color:${p.stock<=10?"rgba(244,63,94,.4)":"var(--edge)"};color:${p.stock<=10?"var(--rose)":"inherit"}" onchange="quick(${p.id},{stock:+this.value})"></td>
+      <td><div style="display:flex;gap:6px">
+        <button class="mini ${p.featured?"on":""}" onclick="quick(${p.id},{featured:${!p.featured}})">Featured</button>
+        <button class="mini ${p.isNew?"cyan":""}" onclick="quick(${p.id},{isNew:${!p.isNew}})">New</button></div></td>
+      <td><div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="mini" onclick='editProduct(DB.products.find(x=>x.id===${p.id}))'>Edit</button>
+        <a class="mini" href="#/product/${p.slug}" target="_blank">View</a>
+        <button class="mini rose" onclick="delProduct(${p.id})">Delete</button></div></td></tr>`).join("")}</tbody></table></div>`;
+}
+
+const FIELDS=[["title","Title",1],["slug","Slug",0],["tagline","Tagline",1],["edition","Edition",1],
+  ["price","Price (cents)",1],["compare","Compare-at price",0],["platform","Platform",1],["genre","Genre",1],
+  ["collection","Collection",1],["stock","Stock",1],["dev","Developer",1],["pub","Publisher",1],
+  ["year","Release year",1],["img","Cover image URL",1],["highlights","Highlights (comma separated)",1],["tags","Tags (comma separated)",1]];
+
+function editProduct(p){
+  AEDIT = p ? {...p} : {title:"",slug:"",tagline:"",desc:"",price:2999,compare:null,platform:"PC",genre:"Adventure",
+    edition:"Standard Edition",collection:DB.collections[0].slug,stock:20,dev:"",pub:"",year:new Date().getFullYear(),
+    img:"",highlights:"",tags:"",featured:false,isNew:true};
+  route();
+}
+function productModal(){
+  const d=AEDIT, isNew=!d.id;
+  return `<div class="modal" onclick="if(event.target===this){AEDIT=null;route()}"><div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+      <div><p class="eyebrow" style="color:var(--gold)">${isNew?"New product":"Edit product"}</p>
+        <h2 class="display" style="font-size:30px;margin-top:8px">${esc(d.title)||"Add a title"}</h2></div>
+      <button class="iconbtn" onclick="AEDIT=null;route()" aria-label="Close">✕</button></div>
+    <div class="mgrid" style="margin-top:22px">
+      ${FIELDS.map(([k,l,num])=>`<label class="${k==="title"||k==="tagline"||k==="img"||k==="highlights"||k==="tags"?"full":""}">
+        <span class="cklabel">${l}</span>
+        ${k==="platform"?`<select class="field" style="margin-top:6px" onchange="upd('${k}',this.value)">${["PC","PlayStation 5","Xbox Series X","Nintendo Switch"].map(o=>`<option ${d.platform===o?"selected":""}>${o}</option>`).join("")}</select>`
+        :k==="genre"?`<select class="field" style="margin-top:6px" onchange="upd('${k}',this.value)">${["Shooter","RPG","Racing","Simulation","Strategy","Stealth","Adventure","Horror","Arcade","Roguelike"].map(o=>`<option ${d.genre===o?"selected":""}>${o}</option>`).join("")}</select>`
+        :k==="collection"?`<select class="field" style="margin-top:6px" onchange="upd('${k}',this.value)">${DB.collections.map(c=>`<option value="${c.slug}" ${d.collection===c.slug?"selected":""}>${c.name}</option>`).join("")}</select>`
+        :`<input class="field mono" style="margin-top:6px" value="${esc(d[k]==null?"":d[k])}" oninput="upd('${k}',${num?"this.value*1":"this.value"})">`}
+        ${k==="price"?`<small class="muted" style="font-size:11px">${money(d.price||0)}</small>`:""}</label>`).join("")}
+      <label class="full"><span class="cklabel">Short description</span>
+        <textarea class="field" rows="2" style="margin-top:6px" oninput="upd('desc',this.value)">${esc(d.desc||"")}</textarea></label>
+      <label class="full"><span class="cklabel">Long story</span>
+        <textarea class="field" rows="4" style="margin-top:6px" oninput="upd('story',this.value)">${esc(d.story||"")}</textarea></label>
+      <div class="full" style="display:flex;gap:24px">
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" ${d.featured?"checked":""} style="accent-color:var(--gold)" onchange="upd('featured',this.checked)"> Featured on home page</label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" ${d.isNew?"checked":""} style="accent-color:var(--gold)" onchange="upd('isNew',this.checked)"> Show "New" badge</label></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--edge);margin-top:24px;padding-top:20px">
+      <button class="muted" style="font-size:14px" onclick="AEDIT=null;route()">Cancel</button>
+      <button class="btn btn-light" ${d.title&&d.title.trim().length>1?"":"disabled"} onclick="saveProduct()">${isNew?"Create product":"Save changes"}</button></div>
+  </div></div>`;
+}
+function upd(k,v){ AEDIT[k]=v;
+  const lbl=$("#mp"); if(k==="price"&&lbl)lbl.textContent=money(AEDIT.price||0);
+}
+function saveProduct(){
+  const d=AEDIT;
+  d.slug=(d.slug||d.title).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"").slice(0,60);
+  const list=(v,fb)=>{const a=(v||"").split(",").map(s=>s.trim()).filter(Boolean);return a.length?a:fb};
+  const cover=d.img||PX(10414000);
+  const rec={...d,
+    desc:d.desc||"Full write-up coming soon.",
+    story:d.story||"Our counter team is still playing this one through — check back shortly for the full review.",
+    img:cover,fb:d.fb||cover,
+    highlights:list(d.highlights,["Curated by the Bha Khan counter team"]),
+    tags:list(d.tags,["New"]),
+    gallery:[cover,d.fb||cover].filter(Boolean),
+    players:d.players||"Single player",playtime:d.playtime||"≈ 20 hours",rated:d.rated||"T — Teen",
+    stock:Math.max(0,d.stock|0),price:Math.max(0,d.price|0),
+    compare:d.compare?d.compare|0:null};
+  if(d.id){ const i=DB.products.findIndex(p=>p.id===d.id); if(i>-1)DB.products[i]={...DB.products[i],...rec}; toast("Product updated."); }
+  else{ rec.id=Math.max(0,...DB.products.map(p=>p.id))+1; DB.products.unshift(rec); toast("Product added to the catalogue."); }
+  recalc(); AEDIT=null; persist(); route();
+}
+function quick(id,patch){
+  const p=DB.products.find(x=>x.id===id); if(!p)return;
+  Object.assign(p,patch); persist(); toast("Saved.");
+  const h=location.hash; route();
+}
+function delProduct(id){
+  const p=DB.products.find(x=>x.id===id); if(!p)return;
+  if(!confirm(`Remove "${p.title}" from the catalogue?`))return;
+  DB.products=DB.products.filter(x=>x.id!==id);
+  DB.reviews=DB.reviews.filter(r=>r.slug!==p.slug);
+  persist(); route(); toast("Product removed.");
+}
+
+function adminOrders(){
+  if(!ORDERS.length) return `<div class="empty" style="margin-top:20px">No orders yet. Place a test order from the storefront to see the pipeline working.</div>`;
+  const rev=ORDERS.filter(o=>o.status!=="refunded").reduce((n,o)=>n+o.total,0);
+  return `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px">
+    <input class="field" style="max-width:300px" id="oAq" placeholder="Search order number, name or email…" value="${esc(AQ)}" oninput="noteFocus();AQ=this.value;route()">
+    <span class="muted" style="font-size:12px;margin-left:auto">Booked revenue <b style="color:var(--bone)" class="mono">${money(rev)}</b></span></div>
+  <div style="display:grid;gap:12px;margin-top:18px">
+  ${ORDERS.filter(o=>[o.num,o.name,o.email].join(" ").toLowerCase().includes(AQ.toLowerCase())).map(o=>`
+    <div class="acard">
+      <button style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;width:100%;padding:16px 20px;text-align:left" onclick="var b=this.nextElementSibling;b.classList.toggle('hide')">
+        <span class="mono" style="font-size:12px;color:var(--gold-soft)">${o.num}</span>
+        <span style="flex:1;min-width:0"><b style="font-size:14px">${esc(o.name)}</b><small class="muted" style="font-size:11px;display:block">${esc(o.email)}</small></span>
+        <small class="muted" style="font-size:11px">${date(o.at)}</small>
+        <span class="st ${o.status}">${o.status}</span><b class="mono">${money(o.total)}</b></button>
+      <div class="hide" style="border-top:1px solid var(--edge);padding:20px">
+        <div style="display:grid;gap:16px" class="formrow">
+          <div><span class="cklabel">Delivery</span><p style="margin-top:6px;font-size:14px;text-transform:capitalize">${o.mode}</p>
+            <small class="muted" style="font-size:11px">${esc(o.address||"")}, ${esc(o.city||"")} ${esc(o.zip||"")}, ${esc(o.country||"")}</small></div>
+          <div><span class="cklabel">Promo</span><p style="margin-top:6px;font-size:14px">${o.promo||"—"}</p></div>
+          <div><span class="cklabel">Set status</span>
+            <select class="field" style="margin-top:6px" onchange="setStatus(${o.id},this.value)">
+              ${STATUSES.map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select></div></div>
+        <ul style="list-style:none;border:1px solid var(--edge);border-radius:12px;margin-top:16px;overflow:hidden">
+          ${o.items.map(i=>`<li style="display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--edge);font-size:14px">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.title)}</span>
+            <small class="muted" style="font-size:11px">${esc(i.edition)} · ${esc(i.platform)}</small>
+            <small class="muted" style="font-size:11px">×${i.qty}</small>
+            <span class="mono">${money(i.price*i.qty)}</span></li>`).join("")}</ul>
+        <div style="display:grid;gap:8px;margin-top:14px" class="formrow">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">Subtotal</span><span class="mono">${money(o.sub)}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">Discount</span><span class="mono">−${money(o.disc)}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">Shipping</span><span class="mono">${money(o.ship)}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">Tax</span><span class="mono">${money(o.tax)}</span></div></div>
+      </div></div>`).join("")}</div>`;
+}
+function setStatus(id,status){
+  const o=ORDERS.find(x=>x.id===id); if(!o)return;
+  o.status=status; save(K.orders,ORDERS); route(); toast("Order marked "+status+".");
+}
+
+function adminReviews(){
+  const R=DB.reviews;
+  if(!R.length) return `<div class="empty" style="margin-top:20px">No reviews to moderate.</div>`;
+  return `<div style="display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap">
+    <input class="field" style="max-width:300px" id="rAq" placeholder="Search reviews…" value="${esc(AQ)}" oninput="noteFocus();AQ=this.value;route()">
+    <span class="muted" style="font-size:12px">${R.filter(r=>!r.verified).length} pending · ${R.length} total</span></div>
+  <div style="display:grid;gap:12px;margin-top:18px">
+  ${R.filter(r=>[r.title,r.body,r.author,r.slug].join(" ").toLowerCase().includes(AQ.toLowerCase())).map(r=>{const p=product(r.slug);
+  return `<div class="acard" style="padding:20px">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+      <span style="display:flex;gap:10px;align-items:center"><span class="st" style="background:var(--edge);color:var(--gold-soft)">${r.r}★</span>
+      <b style="font-size:14px">${esc(r.title)}</b><small class="muted" style="font-size:12px">· ${p?esc(p.title):esc(r.slug)}</small></span>
+      <span style="display:flex;gap:10px;align-items:center"><small class="muted" style="font-size:11px">${date(r.at)}</small>
+      <span class="${r.verified?"vbadge":"pvbadge"}">${r.verified?"verified":"pending"}</span></span></div>
+    <p class="muted" style="font-size:14px;margin-top:12px">${esc(r.body)}</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--edge);margin-top:16px;padding-top:14px">
+      <small class="muted" style="font-size:11px">${esc(r.author)}${r.loc?" · "+esc(r.loc):""} · ${r.helpful} helpful</small>
+      <button class="mini" style="margin-left:auto" onclick="toggleVer(${r.id})">${r.verified?"Unverify":"Verify"}</button>
+      <a class="mini" href="#/product/${r.slug}" target="_blank">View product</a>
+      <button class="mini rose" onclick="delReview(${r.id})">Delete</button></div></div>`}).join("")}</div>`;
+}
+function toggleVer(id){const r=DB.reviews.find(x=>x.id===id);if(!r)return;r.verified=!r.verified;recalc();persist();route();}
+function delReview(id){if(!confirm("Delete this review?"))return;DB.reviews=DB.reviews.filter(x=>x.id!==id);recalc();persist();route();toast("Review deleted.");}
+
+function adminData(){
+  const blob=JSON.stringify(DB,null,2);
+  return `<div style="display:grid;gap:20px;margin-top:8px" class="formrow">
+    <div class="acard" style="padding:24px">
+      <h3 class="display" style="font-size:24px">Export &amp; import</h3>
+      <p class="muted" style="font-size:14px;margin-top:10px">Everything lives in your browser's localStorage. Export a JSON backup, or import one to restore — handy for moving between machines.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Download JSON</button>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+        <button class="btn btn-sm" style="border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.1);color:var(--rose)" onclick="resetAll()">Reset demo data</button>
+      </div></div>
+    <div class="acard" style="padding:24px">
+      <h3 class="display" style="font-size:24px">Live JSON preview</h3>
+      <pre style="margin-top:14px;max-height:340px;overflow:auto;font-size:11px;color:var(--mist);border:1px solid var(--edge);border-radius:12px;padding:16px">${esc(blob.slice(0,4000))}${blob.length>4000?"\n…":""}</pre></div>
+    <div class="acard" style="padding:24px">
+      <h3 class="display" style="font-size:24px">Deploy to GitHub Pages</h3>
+      <ol style="margin-top:14px;padding-left:20px;display:grid;gap:10px;font-size:14px;color:var(--mist)">
+        <li>Download this <code style="color:var(--gold-soft)">index.html</code> file.</li>
+        <li>Create a new GitHub repository (any name).</li>
+        <li>Upload <code style="color:var(--gold-soft)">index.html</code> to the repo root.</li>
+        <li>Also upload the <code style="color:var(--gold-soft)">images/</code> folder that ships next to it — it holds the cover art and hero image.</li>
+        <li>Go to <b style="color:var(--bone)">Settings → Pages</b>, set Source to <b style="color:var(--bone)">Deploy from a branch</b>, branch <b style="color:var(--bone)">main / root</b>, then Save.</li>
+        <li>Your URL appears at <code style="color:var(--gold-soft)">https://USER.github.io/REPO/</code> within a minute or two.</li>
+      </ol>
+      <p class="muted" style="font-size:12px;margin-top:16px">Every image has a remote fallback, so the site still renders correctly even if you upload only <code>index.html</code>.</p>
+    </div></div>`;
+}
+function exportJSON(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:"application/json"}));
+  a.download="bhakhan-catalogue.json";a.click();toast("Backup downloaded.");
+}
+function importJSON(input){
+  const f=input.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(!d.products)throw 0;
+    DB=d;persist();route();toast("Catalogue imported.");}
+  catch(e){toast("That file isn't a valid backup.")}};
+  r.readAsText(f);
+}
+function resetAll(){
+  if(!confirm("Reset catalogue, reviews and orders back to the original demo data?"))return;
+  DB=seed();ORDERS=[];CART=[];save(K.cart,CART);
+  persist();renderCart();route();toast("Demo data restored.");
+}
+
+/* ============================================================================
+   8. ROUTER
+   ============================================================================ */
+const NAV=[["#/shop","Shop all"],["#/collections","Collections"],["#/shop?sort=newest","New releases"],["#/shop?sale=1","Deals"],["#/admin","Admin"]];
+
+let FOCUS=null; // id:attr of the field being typed in, restored after re-render
+function noteFocus(){
+  const el=document.activeElement;
+  if(!el||!el.id||!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))return FOCUS=null;
+  FOCUS={id:el.id,s:el.selectionStart};
+}
+function restoreFocus(){
+  if(!FOCUS)return;
+  const el=document.getElementById(FOCUS.id);
+  if(el){el.focus();try{el.setSelectionRange(FOCUS.s,FOCUS.s)}catch(e){}}
+  FOCUS=null;
+}
+
+function route(){
+  const hash=location.hash||"#/";
+  const [path,qs]=hash.split("?");
+  const seg=path.replace(/^#\/?/,"").split("/").filter(Boolean);
+  const app=$("#app");
+  const keepScroll=FOCUS!=null;
+  if(!keepScroll) window.scrollTo({top:0,behavior:"instant"});
+
+  if(seg[0]==="admin"){ app.innerHTML=viewAdmin(); }
+  else if(seg[0]==="shop"){ app.innerHTML=viewShop(); }
+  else if(seg[0]==="collections"&&seg[1]){ app.innerHTML=viewCollection(decodeURIComponent(seg[1])); }
+  else if(seg[0]==="collections"){ app.innerHTML=viewCollections(); }
+  else if(seg[0]==="product"&&seg[1]){ app.innerHTML=viewProduct(decodeURIComponent(seg[1])); }
+  else if(seg[0]==="checkout"){ app.innerHTML=viewCheckout(); }
+  else if(seg[0]==="orders"&&seg[1]){ app.innerHTML=viewOrder(decodeURIComponent(seg[1])); }
+  else if(seg[0]==="orders"){ app.innerHTML=viewOrdersLookup(); }
+  else { app.innerHTML=viewHome(); }
+
+  $$("#mainnav a, #mobilenav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")===hash.split("?")[0]));
+  reveal();
+  restoreFocus();
+}
+
+/* ============================================================================
+   9. BOOT
+   ============================================================================ */
+$("#marquee").innerHTML=[...Array(2)].map(()=>`<span>${["Free express delivery over $75","Price-match promise on every new release","Pre-owned titles verified by hand","30-day no-quibble returns","Loyalty points on every order"].map(t=>t).join("</span><span>")}</span>`).join("");
+$("#mainnav").innerHTML=NAV.map(([h,l])=>`<a href="${h}">${l}</a>`).join("");
+$("#mobilenav").innerHTML=NAV.map(([h,l])=>`<a href="${h}" onclick="document.getElementById('mobileNav').classList.remove('open')">${l}</a>`).join("")+
+  `<form onsubmit="return msearch(event)" style="display:flex;gap:8px;margin-top:16px"><input class="field" id="mq" placeholder="Search titles…"><button class="btn btn-light btn-sm">Go</button></form>`;
+$("#yr").textContent=new Date().getFullYear();
+
+function msearch(e){e.preventDefault();const t=$("#mq").value.trim();location.hash=t?"#/shop?q="+encodeURIComponent(t):"#/shop";$("#mobileNav").classList.remove("open");return false;}
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){const t=e.target.value.trim();location.hash=t?"#/shop?q="+encodeURIComponent(t):"#/shop";}});
+$("#burger").addEventListener("click",()=>$("#mobileNav").classList.toggle("open"));
+$("#openCart").addEventListener("click",openDrawer);
+$("#closeCart").addEventListener("click",closeDrawer);
+$("#overlay").addEventListener("click",closeDrawer);
+window.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+window.addEventListener("scroll",()=>$("#topbar").classList.toggle("stuck",window.scrollY>16),{passive:true});
+window.addEventListener("hashchange",route);
+
+renderCart();
+route();
+</script>
+</body>
+</html>
